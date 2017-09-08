@@ -180,7 +180,6 @@
 (require 'golint)
 
 
-;;THis is my go mode hook
 (defun my-go-mode-hook ()
   (setq-default) 
   (setq tab-width 2) 
