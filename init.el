@@ -1,16 +1,12 @@
-(setq make-backup-files nil)
-(setq auto-save-default nil)
-(setq message-log-max nil)
-;;PACKAGE
+(setq gc-cons-threshold 100000000)
 
 (require 'package)
-
 (add-to-list 'package-archives
   '("melpa" . "http://melpa.milkbox.net/packages/") t)
-
 (add-to-list 'package-archives
     '("marmalade" .
       "http://marmalade-repo.org/packages/"))
+
 (defvar my-packages
   '(paredit
     beacon
@@ -30,7 +26,7 @@
     material-theme
     tabbar
     tabbar-ruler
-    ;;go lang
+    flycheck
     go-mode
     go-guru
     ))
@@ -40,14 +36,6 @@
 (when (not package-archive-contents)
   (package-refresh-contents))
 
-;; On OS X, an Emacs instance started from the graphical user
-;; interface will have a different environment than a shell in a
-;; terminal window, because OS X does not run a shell during the
-;; login. Obviously this will lead to unexpected results when
-;; calling external utilities like make from Emacs.
-;; This library works around this problem by copying important
-;; environment variables from the user's shell.
-;; https://github.com/purcell/exec-path-from-shell
 (if (eq system-type 'darwin)
     (add-to-list 'my-packages 'exec-path-from-shell))
 
@@ -55,109 +43,204 @@
   (when (not (package-installed-p p))
     (package-install p)))
 
-;;PACKAGE
 
-;;UI
+;;;;;;;;;;
+;; Functions
+;;;;;;;;;;
 
-;;theme
+(defun simulate-key-press (key)
+  "Pretend that KEY was pressed.
+KEY must be given in `kbd' notation."
+  `(lambda () (interactive)
+     (setq prefix-arg current-prefix-arg)
+     (setq unread-command-events (listify-key-sequence (read-kbd-macro ,key)))))
+
+(defun delete-grep-header ()
+  (save-excursion
+    (with-current-buffer grep-last-buffer
+      (goto-line 5)
+      (narrow-to-region (point) (point-max)))))
+
+(defun intellij-kill-current-buffer ()
+  (interactive)
+  (kill-buffer (buffer-name)))
+
+(defun intellij-send-top-form-to-repl ()
+  (interactive)
+  (cider-insert-last-sexp-in-repl -1)
+  (cider-switch-to-last-clojure-buffer))
+
+(defun intellij-reformat-code ()
+  (interactive)
+  (mark-whole-buffer)
+  (indent-region (region-beginning) (region-end))
+  (pop-global-mark))
+
+(defun indent-marked-files ()
+  (interactive)
+  (dolist (file (dired-get-marked-files))
+    (find-file file)
+    (indent-region (point-min) (point-max))
+    (save-buffer)
+    (kill-buffer nil)))
+
+(defun cider-dev>reset ()
+  "dev>(reset). convenient function to reset my clojure development system"
+  (interactive)
+  (cider-switch-to-repl-buffer)
+  (insert "(dev/reset)")
+  (cider-repl-return)
+  ;;(cider-switch-to-last-clojure-buffer)
+  )
+
+(defun cider-dev>c.t.n.repl/refresh ()
+  "dev>(reset). convenient function to reset my clojure development system"
+  (interactive)
+  (cider-switch-to-repl-buffer)
+  (insert "(clojure.tools.namespace.repl/refresh)")
+  (cider-repl-return)
+  ;;(cider-switch-to-last-clojure-buffer)
+  )
+
+(defun cider-dev>eval-last-repl-input ()
+  (interactive)
+  )
+
+(defun better-transpose-sexps-up (arg)
+  "mimic move form up cursive"
+  (interactive "*p")
+  (transpose-sexps arg)
+  (paredit-backward)
+  (paredit-backward)
+  ;;(previous-line)
+  )
+
+(defun better-transpose-sexps-down (arg)
+  "mimic move form up cursive"
+  (interactive "*p")
+  (paredit-forward)
+  (transpose-sexps arg)
+  (paredit-backward)
+  ;;(previous-line)
+  )
+
+(defun experiment-repair-all-unused-space ()
+  "experiment stuff"
+  (interactive)
+  (beginning-of-buffer)
+  (while (re-search-forward "[ ]+" nil t)
+    (replace-match " "))
+  (intellij-reformat-code))
+ 
+;; comments
+(defun toggle-comment-on-line ()
+  "comment or uncomment current line"
+  (interactive)
+  (comment-or-uncomment-region (line-beginning-position) (line-end-position)))
+(global-set-key (kbd "C-;") 'toggle-comment-on-line)
+
+(defun paredit-kill-region-or-backward-delete ()
+  (interactive)
+  (if (region-active-p)
+      (kill-region (region-beginning) (region-end))
+    (paredit-backward-delete)))
+
+;;;;;;;;;;
+;; Better default
+;;;;;;;;;;
 (load-theme 'material t)
-
-;;font
-;;(add-to-list 'default-frame-alist '(font . "PT Mono-14:weight=normal"))
-;;(set-face-attribute 'default t :font "PT Mono-14:weight=normal")
-
-;; Don't show native OS bars scroll for buffers because they're redundant
-(when (fboundp 'scroll-bar-mode)
-  (scroll-bar-mode -1))
-
-;;misc
 (blink-cursor-mode 0)
 (setq-default frame-title-format "%b (%f)")
 (global-linum-mode)
 (add-to-list 'default-frame-alist '(fullscreen . maximized))
 (setq ring-bell-function 'ignore)
 (global-set-key (kbd "s-t") '(lambda () (interactive)))
-
 (setq
- ;; makes killing/yanking interact with the clipboard
  x-select-enable-clipboard t
-
- ;; I'm actually not sure what this does but it's recommended?
  x-select-enable-primary t
-
- ;; Save clipboard strings into kill ring before replacing them.
- ;; When one selects something in another program to paste it into Emacs,
- ;; but kills something in Emacs before actually pasting it,
- ;; this selection is gone unless this variable is non-nil
  save-interprogram-paste-before-kill t
-
- ;; Shows all options when running apropos. For more info,
- ;; https://www.gnu.org/software/emacs/manual/html_node/emacs/Apropos.html
- ;; apropos-do-all t
-
- ;; Mouse yank commands yank at point instead of at click.
- ;; mouse-yank-at-point t
  )
+(setq backup-directory-alist `(("." . ,(concat user-emacs-directory "backups"))))
+(setq auto-save-default nil)
+(setq-default indent-tabs-mode nil)
+(show-paren-mode 1)
+(global-hl-line-mode 1)
+(setq electric-indent-mode nil)
+(hl-todo-mode)
+(setq-default indicate-empty-lines t)
+(when (not indicate-empty-lines)
+  (toggle-indicate-empty-lines))
+(when (fboundp 'scroll-bar-mode)
+  (scroll-bar-mode -1))
+(setq column-number-mode t)
+(defadvice grep (after delete-grep-header activate) (delete-grep-header))
+(defadvice rgrep (after delete-grep-header activate) (delete-grep-header))
+(global-undo-tree-mode 1)
+(delete-selection-mode 1)
+(fset 'yes-or-no-p 'y-or-n-p)
+(setq create-lockfiles nil)
+;; Go straight to scratch buffer on startup
+;; TODO open note from foole drive instead of scratch
+(setq inhibit-startup-message t)
+(tool-bar-mode -1)
+(setq-default sh-basic-offset 2)
+(setq-default sh-indentation 2)
+(require 'uniquify)
+(setq uniquify-buffer-name-style 'forward)
+;; Turn on recent file mode so that you can more easily switch to
+;; recently edited files when you first start emacs
+(setq recentf-save-file (concat user-emacs-directory ".recentf"))
+(require 'recentf)
+(recentf-mode 1)
+(setq recentf-max-menu-items 1000)
+(ido-mode t)
+(setq ido-enable-flex-matching t)
+(setq ido-use-filename-at-point nil)
+(setq ido-auto-merge-work-directories-length -1)
+(setq ido-use-virtual-buffers t)
+(ido-ubiquitous-mode 1)
 
-;;THEME AND UI
+(setq smex-save-file (concat user-emacs-directory ".smex-items"))
+(smex-initialize)
+(require 'saveplace)
+(setq-default save-place t)
+(setq save-place-file (concat user-emacs-directory "places"))
 
-;;;;
-;; Customization
-;;;;
-(add-to-list 'load-path "~/.emacs.d/customizations")
+(require 'expand-region)
 
-;; Sets up exec-path-from-shell so that Emacs will use the correct
-;; environment variables
-(load "shell-integration.el")
+;;;;;;;;;;
+;;Global mode
+;;;;;;;;;;
 
-(load "navigation.el")
-;;(load "ui.el")
-(load "editing.el")
-(load "misc.el")
-;;(load "firacode.el")
-(load "elisp-editing.el")
-;; Language-specific
-(load "setup-clojure.el")
-(load "setup-js.el")
-
-(load "kbd.el")
-(load "intellij.el")
-
-
-;; (auto-complete-mode 1)
-
-;;company
+;;Some mode must maybe better to be set up locally
+;;Like this company mode, I don't want to run company mode in org or scratch
 (global-company-mode)
 (setq company-idle-delay nil) ; never start completions automatically
 (global-set-key (kbd "M-TAB") #'company-complete)
- ; use M-TAB, a.k.a. C-M-i, as manual trigger
 (global-set-key (kbd "TAB") #'company-indent-or-complete-common)
-(company-quickhelp-mode 1)
-;;company-go
-(add-to-list 'load-path "/home/nakama/workspace/go/src/github.com/nsf/gocode/emacs-company")
-(require 'company-go)                                ; load company mode go backend
 
-(add-hook 'prog-mode-hook 'rainbow-delimiters-mode)
+(global-flycheck-mode)
+(require 'tabbar)
+(tabbar-mode t)
+(global-set-key (kbd "M-[") 'tabbar-backward)
+(global-set-key (kbd "M-]") 'tabbar-forward)
 
-(defun my-web-mode-hook ()
-  "Hooks for Web mode."
-  (setq web-mode-markup-indent-offset 4) 
-  (setq web-mode-code-indent-offset 4)
-  (setq web-mode-css-indent-offset 4)
-  (setq web-mode-comment-style 4)
-  )
+(setq tabbar-ruler-global-tabbar t)    ; get tabbar
+(setq tabbar-ruler-popup-menu t)       ; get popup menu.
+(setq tabbar-ruler-popup-toolbar t)    ; get popup toolbar
+(setq tabbar-ruler-popup-scrollbar t)  ; show scroll-bar on mouse-move
+(require 'tabbar-ruler)
+(setq tabbar-buffer-groups-function 'tabbar-buffer-groups)
+(tabbar-ruler-group-by-projectile-project)
 
-(add-hook 'web-mode-hook  'my-web-mode-hook)
+;;Too lazy to change kbd for projectile
+(global-set-key (kbd "C-p") (simulate-key-press "C-c p"))
+;; projectile everywhere!
+(projectile-global-mode)
 
-(add-to-list 'auto-mode-alist '("\\.phtml\\'" . web-mode))
-(add-to-list 'auto-mode-alist '("\\.tpl\\.php\\'" . web-mode))
-(add-to-list 'auto-mode-alist '("\\.[agj]sp\\'" . web-mode))
-(add-to-list 'auto-mode-alist '("\\.as[cp]x\\'" . web-mode))
-(add-to-list 'auto-mode-alist '("\\.erb\\'" . web-mode))
-(add-to-list 'auto-mode-alist '("\\.mustache\\'" . web-mode))
-(add-to-list 'auto-mode-alist '("\\.djhtml\\'" . web-mode))
-(add-to-list 'auto-mode-alist '("\\.html?\\'" . web-mode))
-
+;;;;;;;;;;
+;; Settings that i still don't know
+;;;;;;;;;;
 
 (defun set-exec-path-from-shell-PATH ()
   (let ((path-from-shell (replace-regexp-in-string
@@ -170,12 +253,124 @@
 
 (when window-system (set-exec-path-from-shell-PATH))
 
-;;Todo add hook to flycheck specifically
-(global-flycheck-mode)
+;; Sets up exec-path-from shell
+;; https://github.com/purcell/exec-path-from-shell
 
+(when (memq window-system '(mac ns))
+  (exec-path-from-shell-initialize)
+  (exec-path-from-shell-copy-envs
+   '("PATH")))
+
+;;;;;;;;;;
+;; Global Kbds
+;;;;;;;;;;
+
+(global-set-key (kbd "C-s") 'isearch-forward-regexp)
+(global-set-key (kbd "C-r") 'isearch-backward-regexp)
+(global-set-key (kbd "C-M-s") 'isearch-forward)
+(global-set-key (kbd "C-M-r") 'isearch-backward)
+(global-set-key (kbd "C-;") 'toggle-comment-on-line)
+;; (global-set-key (kbd "C-S-c C-S-c") 'mc/edit-lines)
+(global-set-key (kbd "C->") 'mc/mark-next-like-this)
+(global-set-key (kbd "C-<") 'mc/mark-previous-like-this)
+;; (global-set-key (kbd "C-c C-<") 'mc/mark-all-like-this)
+(global-set-key (kbd "<C-up>") 'better-transpose-sexps-up)
+(global-set-key (kbd "<C-down>") 'better-transpose-sexps-down)
+(global-set-key (kbd "C-z") 'undo-tree-undo)
+(global-set-key (kbd "C-S-z") 'undo-tree-redo)
+
+(global-set-key (kbd "C-1") 'smex)
+(global-set-key (kbd "C-s") 'save-buffer)
+(global-set-key (kbd "C-o") 'ido-find-file)
+(global-set-key (kbd "C-b") 'ido-switch-buffer)
+(global-set-key (kbd "M-x") 'kill-region)
+(global-set-key (kbd "M-c") 'copy-region-as-kill)
+(global-set-key (kbd "M-v") 'yank)
+(global-set-key (kbd "<M-up>") 'er/expand-region)
+(global-set-key (kbd "C-w") 'intellij-kill-current-buffer)
+(global-set-key (kbd "M-1") 'other-window)
+(global-set-key (kbd "C-f") 'isearch-forward)
+(global-set-key (kbd "C-F") 'isearch-forward-regexp)
+(global-set-key (kbd "C-v") 'yank)
+(global-set-key (kbd "<home>") 'beginning-of-buffer)
+(global-set-key (kbd "<end>") 'end-of-buffer)
+(global-set-key (kbd "C-M-q") 'save-buffers-kill-terminal)
+(global-set-key (kbd "<C-tab>") 'other-window)
+(global-set-key (kbd "<M-up>") 'er/expand-region)
+(global-set-key (kbd "<M-down>") 'er/contract-region)
+
+;; TODO move to clojure mode 
+(global-set-key (kbd "C-S-l") 'cider-load-buffer)
+(global-set-key (kbd "C-S-n") 'cider-repl-set-ns)
+(global-set-key (kbd "C-S-p") 'intellij-send-top-form-to-repl)
+(global-set-key (kbd "<f5>") 'cider-dev>reset)
+(global-set-key (kbd "<f6>") 'cider-dev>c.t.n.repl/refresh)
+
+;;;;;;;;;;
+;; Elisp
+;;;;;;;;;;
+
+;; Automatically load paredit when editing a lisp file
+;; More at http://www.emacswiki.org/emacs/ParEdit
+(autoload 'enable-paredit-mode "paredit" "Turn on pseudo-structural editing of Lisp code." t)
+(add-hook 'emacs-lisp-mode-hook       #'enable-paredit-mode)
+(add-hook 'eval-expression-minibuffer-setup-hook #'enable-paredit-mode)
+(add-hook 'ielm-mode-hook             #'enable-paredit-mode)
+(add-hook 'lisp-mode-hook             #'enable-paredit-mode)
+(add-hook 'lisp-interaction-mode-hook #'enable-paredit-mode)
+(add-hook 'scheme-mode-hook           #'enable-paredit-mode)
+
+;; eldoc-mode shows documentation in the minibuffer when writing code
+;; http://www.emacswiki.org/emacs/ElDoc
+(add-hook 'emacs-lisp-mode-hook 'turn-on-eldoc-mode)
+(add-hook 'lisp-interaction-mode-hook 'turn-on-eldoc-mode)
+(add-hook 'ielm-mode-hook 'turn-on-eldoc-mode)
+
+
+;;;;;;;;;;
+;; Web Mode
+;;;;;;;;;;
+
+(defun my-web-mode-hook ()
+  "Hooks for Web mode."
+  (setq web-mode-markup-indent-offset 4) 
+  (setq web-mode-code-indent-offset 4)
+  (setq web-mode-css-indent-offset 4)
+  (setq web-mode-comment-style 4)
+  )
+
+(add-hook 'web-mode-hook  'my-web-mode-hook)
+(add-hook 'html-mode-hook 'subword-mode)
+(add-to-list 'auto-mode-alist '("\\.phtml\\'" . web-mode))
+(add-to-list 'auto-mode-alist '("\\.tpl\\.php\\'" . web-mode))
+(add-to-list 'auto-mode-alist '("\\.[agj]sp\\'" . web-mode))
+(add-to-list 'auto-mode-alist '("\\.as[cp]x\\'" . web-mode))
+(add-to-list 'auto-mode-alist '("\\.erb\\'" . web-mode))
+(add-to-list 'auto-mode-alist '("\\.mustache\\'" . web-mode))
+(add-to-list 'auto-mode-alist '("\\.djhtml\\'" . web-mode))
+(add-to-list 'auto-mode-alist '("\\.html?\\'" . web-mode))
+
+;; javascript
+(add-to-list 'auto-mode-alist '("\\.js$" . js-mode))
+(add-hook 'js-mode-hook 'subword-mode)
+(setq js-indent-level 2)
+
+;;;;;;;;;;
+;; Clojure Mode
+;;;;;;;;;;
+
+;; Enable paredit for Clojure
+(add-hook 'clojure-mode-hook 'enable-paredit-mode)
+(add-hook 'clojure-mode-hook 'subword-mode)
+(require 'clojure-mode-extra-font-locking)
+
+
+;;;;;;;;;;
+;; Go Mode
+;;;;;;;;;;
 (setenv "GOPATH" "/home/nakama/workspace/go")
-(add-hook 'before-save-hook 'gofmt-before-save)
-
+(add-to-list 'load-path (concat (getenv "GOPATH")  "/src/github.com/nsf/gocode/emacs-company"))
+(require 'company-go)
 (add-to-list 'load-path (concat (getenv "GOPATH")  "/src/github.com/golang/lint/misc/emacs"))
 (require 'golint)
 
@@ -189,113 +384,46 @@
   (local-set-key (kbd "M-,") 'godef-jump-other-window)
   (local-set-key (kbd "M-p") 'compile) 
   (local-set-key (kbd "M-P") 'recompile)
-  ;; (local-set-key (kbd "<M-up>") 'go-guru-expand-region)
   )
 
 (add-hook 'go-mode-hook 'my-go-mode-hook)
+(add-hook 'go-mode-hook 'subword-mode)
 
-(setq-default indicate-empty-lines t)
-(when (not indicate-empty-lines)
-  (toggle-indicate-empty-lines))
+;;;;;;;;;;
+;; Hook that i still don't know
+;;;;;;;;;;
 
-(setq column-number-mode t)
+(add-hook 'prog-mode-hook 'rainbow-delimiters-mode)
 
-(global-set-key (kbd "C-S-c C-S-c") 'mc/edit-lines)
-(global-set-key (kbd "C->") 'mc/mark-next-like-this)
-(global-set-key (kbd "C-<") 'mc/mark-previous-like-this)
-(global-set-key (kbd "C-c C-<") 'mc/mark-all-like-this)
+;;;;;;;;;;
+;; Paredit
+;;;;;;;;;;
 
-(defun simulate-key-press (key)
-  "Pretend that KEY was pressed.
-KEY must be given in `kbd' notation."
-  `(lambda () (interactive)
-     (setq prefix-arg current-prefix-arg)
-     (setq unread-command-events (listify-key-sequence (read-kbd-macro ,key)))))
+(eval-after-load 'paredit
+  '(progn
+     (define-key paredit-mode-map (kbd "<backspace>") 'paredit-kill-region-or-backward-delete)
+     (define-key paredit-mode-map (kbd "<M-right>") 'paredit-forward)
+     (define-key paredit-mode-map (kbd "<M-left>")  'paredit-backward)
+     (define-key paredit-mode-map (kbd "<M-up>") nil)
+     (define-key paredit-mode-map (kbd "C-{") nil)
+     (define-key paredit-mode-map (kbd "<M-down>")  nil)
+     (define-key paredit-mode-map (kbd "<C-right>")  'move-end-of-line)
+     (define-key paredit-mode-map (kbd "<C-left>")  'move-beginning-of-line)
+     (define-key paredit-mode-map (kbd "M-k") 'paredit-kill)
+     (define-key paredit-mode-map (kbd "M-s") nil)
+     (define-key paredit-mode-map (kbd "M-s M-d") 'paredit-forward-slurp-sexp)
+     (define-key paredit-mode-map (kbd "M-s M-a") 'paredit-backward-slurp-sexp)
+     
+     (define-key paredit-mode-map (kbd "M-b M-n") 'paredit-forward-barf-sexp)
+     (define-key paredit-mode-map (kbd "M-b M-v") 'paredit-backward-barf-sexp)
 
-;;Too lazy to change kbd for projectile
-;;It's still not really used though :(
-(global-set-key (kbd "C-p") (simulate-key-press "C-c p"))
+     (define-key paredit-mode-map (kbd "M-w M-w") 'paredit-splice-sexp)
+     (define-key paredit-mode-map (kbd "M-w M-q") 'paredit-splice-sexp-killing-backward)
+     (define-key paredit-mode-map (kbd "M-w M-e") 'paredit-splice-sexp-killing-forward)
 
-(beacon-mode 1)
-(ido-vertical-mode t)
-(put 'upcase-region 'disabled nil)
-
-
-;; load tabbar
-(add-to-list 'load-path "~/dotfiles/tabbar")
-;; Tabbar settings
-;; Tabbar
-(require 'tabbar)
-;; Tabbar settings
-(set-face-attribute
- 'tabbar-default nil
- :background "gray20"
- :foreground "gray20"
- :box '(:line-width 1 :color "gray20" :style nil))
-(set-face-attribute
- 'tabbar-unselected nil
- :background "gray30"
- :foreground "white"
- :box '(:line-width 1 :color "gray30" :style nil))
-(set-face-attribute
- 'tabbar-selected nil
- :background "gray75"
- :foreground "black"
- :box '(:line-width 1 :color "gray75" :style nil))
-(set-face-attribute
- 'tabbar-highlight nil
- :background "white"
- :foreground "black"
- :underline nil
- :box '(:line-width 1 :color "white" :style nil))
-(set-face-attribute
- 'tabbar-button nil
- :box '(:line-width 1 :color "gray20" :style nil))
-(set-face-attribute
- 'tabbar-separator nil
- :background "gray20"
- :height 0.6)
-
-;; Change padding of the tabs
-;; we also need to set separator to avoid overlapping tabs by highlighted tabs
-(custom-set-variables
- '(tabbar-separator (quote (0.5))))
-;; adding spaces
-(defun tabbar-buffer-tab-label (tab)
-  "Return a label for TAB.
-That is, a string used to represent it on the tab bar."
-  (let ((label  (if tabbar--buffer-show-groups
-                    (format "[%s]  " (tabbar-tab-tabset tab))
-                  (format "%s  " (tabbar-tab-value tab)))))
-    ;; Unless the tab bar auto scrolls to keep the selected tab
-    ;; visible, shorten the tab label to keep as many tabs as possible
-    ;; in the visible area of the tab bar.
-    (if tabbar-auto-scroll-flag
-        label
-      (tabbar-shorten
-       label (max 1 (/ (window-width)
-                       (length (tabbar-view
-                                (tabbar-current-tabset)))))))))
-
-(tabbar-mode t)
-(global-set-key (kbd "M-[") 'tabbar-backward)
-(global-set-key (kbd "M-]") 'tabbar-forward)
-
-;; (setq tabbar-ruler-global-tabbar t)    ; get tabbar
-;; (setq tabbar-ruler-global-ruler t)     ; get global ruler
-;; (setq tabbar-ruler-popup-menu t)       ; get popup menu.
-;; (setq tabbar-ruler-popup-toolbar t)    ; get popup toolbar
-;; (setq tabbar-ruler-popup-scrollbar t)  ; show scroll-bar on mouse-move
-(require 'tabbar-ruler)
-(setq tabbar-buffer-groups-function 'tabbar-buffer-groups)
-(tabbar-ruler-group-by-projectile-project)
-
-(defun delete-grep-header ()
-  (save-excursion
-    (with-current-buffer grep-last-buffer
-      (goto-line 5)
-      (narrow-to-region (point) (point-max))
-      )))
-
-(defadvice grep (after delete-grep-header activate) (delete-grep-header))
-(defadvice rgrep (after delete-grep-header activate) (delete-grep-header))
+     (define-key paredit-mode-map (kbd "M-d") nil)
+     (define-key paredit-mode-map (kbd "C-d") nil)
+     
+     ;;(define-key paredit-mode-map (kbd "<C-down>") (transpose-sexps -1))
+     ;;(define-key paredit-mode-map (kbd "<C-up>") 'transpose-sexps)
+     ))
