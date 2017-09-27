@@ -227,7 +227,6 @@ KEY must be given in `kbd' notation."
 (setq tabbar-ruler-global-tabbar t)    ; get tabbar
 (setq tabbar-ruler-popup-menu t)       ; get popup menu.
 (setq tabbar-ruler-popup-toolbar t)    ; get popup toolbar
-(setq tabbar-ruler-popup-scrollbar t)  ; show scroll-bar on mouse-move
 (require 'tabbar-ruler)
 (setq tabbar-buffer-groups-function 'tabbar-buffer-groups)
 (tabbar-ruler-group-by-projectile-project)
