@@ -1,4 +1,4 @@
-(setq gc-cons-threshold 100000000)
+(setq gc-cons-threshold 800000000)
 
 (require 'package)
 (add-to-list 'package-archives
@@ -21,6 +21,8 @@
     magit
     projectile
     company
+    company-quickhelp
+    company-go
     web-mode
     undo-tree
     material-theme
@@ -30,7 +32,10 @@
     go-mode
     go-guru
     hl-todo
-    ))
+    vimish-fold
+    keyfreq
+    smooth-scrolling
+    multiple-cursors))
 
 (package-initialize)
 
@@ -43,7 +48,6 @@
 (dolist (p my-packages)
   (when (not (package-installed-p p))
     (package-install p)))
-
 
 ;;;;;;;;;;
 ;; Functions
@@ -153,16 +157,31 @@ KEY must be given in `kbd' notation."
 (require 'recentf)
 (require 'saveplace)
 (require 'expand-region)
-
+(require 'keyfreq)
+(require 'powerline)
+(powerline-center-theme)
+(smooth-scrolling-mode 1)
+(setq smooth-scroll-margin 5)
+(electric-pair-mode 1)
+(keyfreq-mode 1)
+(keyfreq-autosave-mode 1)
+(when (window-system)
+  (set-default-font "Fira Code Retina"))
 (load-theme 'material t)
+;; (load-theme 'dracula t)
+;; (set-face-background 'mode-line "#510370")
+;; (set-face-background 'mode-line-inactive "black")
+(setq mouse-wheel-scroll-amount '(1 ((shift) . 1))) ;; one line at a time
+(setq mouse-wheel-progressive-speed nil) ;; don't accelerate scrolling
 (blink-cursor-mode 0)
 (global-linum-mode)
 (show-paren-mode 1)
 (global-hl-line-mode 1)
 (hl-todo-mode)
-(add-to-list 'default-frame-alist '(fullscreen . maximized))
+(toggle-frame-maximized)
 (toggle-indicate-empty-lines)
-(scroll-bar-mode -1)
+(when (fboundp 'scroll-bar-mode)
+  (scroll-bar-mode -1))
 (global-undo-tree-mode 1)
 (delete-selection-mode 1)
 (fset 'yes-or-no-p 'y-or-n-p)
@@ -190,14 +209,17 @@ KEY must be given in `kbd' notation."
  inhibit-startup-message t
 
  recentf-save-file (concat user-emacs-directory ".recentf")
- recentf-max-menu-items 10000
+ recentf-max-menu-items 100
+ recentf-auto-cleanup 'never
  ido-enable-flex-matching t
  ido-use-filename-at-point nil
  ido-auto-merge-work-directories-length -1
  ido-use-virtual-buffers t
  smex-save-file (concat user-emacs-directory ".smex-items")
  save-place-file (concat user-emacs-directory "places")
- uniquify-buffer-name-style 'forward)
+ uniquify-buffer-name-style 'forward
+ scroll-conservatively 10000
+ scroll-preserve-screen-position t)
 
 (smex-initialize)
 (recentf-mode 1)
@@ -214,6 +236,7 @@ KEY must be given in `kbd' notation."
 ;;Some mode must maybe better to be set up locally
 ;;Like this company mode, I don't want to run company mode in org or scratch
 (global-company-mode)
+(company-quickhelp-mode 1)
 (setq company-idle-delay nil) ; never start completions automatically
 (global-set-key (kbd "M-TAB") #'company-complete)
 (global-set-key (kbd "TAB") #'company-indent-or-complete-common)
@@ -225,31 +248,23 @@ KEY must be given in `kbd' notation."
 (global-set-key (kbd "M-}") 'tabbar-forward)
 
 (setq tabbar-ruler-global-tabbar t)    ; get tabbar
-(setq tabbar-ruler-popup-menu t)       ; get popup menu.
-(setq tabbar-ruler-popup-toolbar t)    ; get popup toolbar
 (require 'tabbar-ruler)
 (setq tabbar-buffer-groups-function 'tabbar-buffer-groups)
 (tabbar-ruler-group-by-projectile-project)
+
+
 
 ;;Too lazy to change kbd for projectile
 (global-set-key (kbd "C-p") (simulate-key-press "C-c p"))
 ;; projectile everywhere!
 (projectile-global-mode)
 
+(vimish-fold-global-mode 1)
+(global-set-key (kbd "C-,") #'vimish-fold)
+(global-set-key (kbd "") #'vimish-fold-delete)
 ;;;;;;;;;;
 ;; Settings that i still don't know
 ;;;;;;;;;;
-
-(defun set-exec-path-from-shell-PATH ()
-  (let ((path-from-shell (replace-regexp-in-string
-                          "[ \t\n]*$"
-                          ""
-                          (shell-command-to-string "$SHELL --login -i -c 'echo $PATH'"))))
-    (setenv "PATH" path-from-shell)
-    (setq eshell-path-env path-from-shell) ; for eshell users
-    (setq exec-path (split-string path-from-shell path-separator))))
-
-(when window-system (set-exec-path-from-shell-PATH))
 
 ;; Sets up exec-path-from shell
 ;; https://github.com/purcell/exec-path-from-shell
@@ -276,7 +291,7 @@ KEY must be given in `kbd' notation."
 (global-set-key (kbd "<C-down>") 'better-transpose-sexps-down)
 (global-set-key (kbd "C-z") 'undo-tree-undo)
 (global-set-key (kbd "C-S-z") 'undo-tree-redo)
-
+(global-set-key (kbd "C-x g") 'magit-status)
 (global-set-key (kbd "C-1") 'smex)
 (global-set-key (kbd "C-s") 'save-buffer)
 (global-set-key (kbd "C-o") 'ido-find-file)
@@ -372,8 +387,8 @@ KEY must be given in `kbd' notation."
 ;;TODO Take GOPATH from bash env
 (setenv "GOPATH" "/home/nakama/workspace/go")
 (add-to-list 'load-path (concat (getenv "GOPATH")  "/src/github.com/nsf/gocode/emacs-company"))
-(require 'company-go)
 (add-to-list 'load-path (concat (getenv "GOPATH")  "/src/github.com/golang/lint/misc/emacs"))
+(require 'company-go)
 (require 'golint)
 
 (defun my-go-mode-hook ()
@@ -429,3 +444,5 @@ KEY must be given in `kbd' notation."
      ;;(define-key paredit-mode-map (kbd "<C-down>") (transpose-sexps -1))
      ;;(define-key paredit-mode-map (kbd "<C-up>") 'transpose-sexps)
      ))
+
+
