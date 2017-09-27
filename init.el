@@ -367,6 +367,10 @@ KEY must be given in `kbd' notation."
 ;;;;;;;;;;
 ;; Go Mode
 ;;;;;;;;;;
+
+;;Don't forget to install some of go lang library
+
+;;TODO Take GOPATH from bash env
 (setenv "GOPATH" "/home/nakama/workspace/go")
 (add-to-list 'load-path (concat (getenv "GOPATH")  "/src/github.com/nsf/gocode/emacs-company"))
 (require 'company-go)
@@ -379,6 +383,7 @@ KEY must be given in `kbd' notation."
   (setq standard-indent 2) 
   (setq indent-tabs-mode nil)
   (add-hook 'before-save-hook 'gofmt-before-save)
+  (add-hook 'go-mode-hook 'subword-mode)
   (local-set-key (kbd "M-.") 'godef-jump)
   (local-set-key (kbd "M-,") 'godef-jump-other-window)
   (local-set-key (kbd "M-p") 'compile) 
@@ -386,7 +391,6 @@ KEY must be given in `kbd' notation."
   )
 
 (add-hook 'go-mode-hook 'my-go-mode-hook)
-(add-hook 'go-mode-hook 'subword-mode)
 
 ;;;;;;;;;;
 ;; Hook that i still don't know
