@@ -29,6 +29,7 @@
     flycheck
     go-mode
     go-guru
+    hl-todo
     ))
 
 (package-initialize)
@@ -148,65 +149,63 @@ KEY must be given in `kbd' notation."
 ;;;;;;;;;;
 ;; Better default
 ;;;;;;;;;;
+(require 'uniquify)
+(require 'recentf)
+(require 'saveplace)
+(require 'expand-region)
+
 (load-theme 'material t)
 (blink-cursor-mode 0)
-(setq-default frame-title-format "%b (%f)")
 (global-linum-mode)
+(show-paren-mode 1)
+(global-hl-line-mode 1)
+(hl-todo-mode)
 (add-to-list 'default-frame-alist '(fullscreen . maximized))
-(setq ring-bell-function 'ignore)
-(global-set-key (kbd "s-t") '(lambda () (interactive)))
+(toggle-indicate-empty-lines)
+(scroll-bar-mode -1)
+(global-undo-tree-mode 1)
+(delete-selection-mode 1)
+(fset 'yes-or-no-p 'y-or-n-p)
+(tool-bar-mode -1)
+
+(setq-default 
+ frame-title-format "%b (%f)"
+ indent-tabs-mode nil
+ indicate-empty-lines t
+ sh-basic-offset 2
+ sh-indentation 2
+ save-place t)
+
 (setq
  x-select-enable-clipboard t
  x-select-enable-primary t
  save-interprogram-paste-before-kill t
- )
-(setq backup-directory-alist `(("." . ,(concat user-emacs-directory "backups"))))
-(setq auto-save-default nil)
-(setq-default indent-tabs-mode nil)
-(show-paren-mode 1)
-(global-hl-line-mode 1)
-(setq electric-indent-mode nil)
-(hl-todo-mode)
-(setq-default indicate-empty-lines t)
-(when (not indicate-empty-lines)
-  (toggle-indicate-empty-lines))
-(when (fboundp 'scroll-bar-mode)
-  (scroll-bar-mode -1))
-(setq column-number-mode t)
+ 
+ backup-directory-alist `(("." . ,(concat user-emacs-directory "backups")))
+ auto-save-default nil
+ ring-bell-function 'ignore
+ electric-indent-mode nil
+ column-number-mode t
+ create-lockfiles nil
+ inhibit-startup-message t
+
+ recentf-save-file (concat user-emacs-directory ".recentf")
+ recentf-max-menu-items 10000
+ ido-enable-flex-matching t
+ ido-use-filename-at-point nil
+ ido-auto-merge-work-directories-length -1
+ ido-use-virtual-buffers t
+ smex-save-file (concat user-emacs-directory ".smex-items")
+ save-place-file (concat user-emacs-directory "places")
+ uniquify-buffer-name-style 'forward)
+
+(smex-initialize)
+(recentf-mode 1)
+(ido-ubiquitous-mode 1)
+(ido-mode t)
+
 (defadvice grep (after delete-grep-header activate) (delete-grep-header))
 (defadvice rgrep (after delete-grep-header activate) (delete-grep-header))
-(global-undo-tree-mode 1)
-(delete-selection-mode 1)
-(fset 'yes-or-no-p 'y-or-n-p)
-(setq create-lockfiles nil)
-;; Go straight to scratch buffer on startup
-;; TODO open note from foole drive instead of scratch
-(setq inhibit-startup-message t)
-(tool-bar-mode -1)
-(setq-default sh-basic-offset 2)
-(setq-default sh-indentation 2)
-(require 'uniquify)
-(setq uniquify-buffer-name-style 'forward)
-;; Turn on recent file mode so that you can more easily switch to
-;; recently edited files when you first start emacs
-(setq recentf-save-file (concat user-emacs-directory ".recentf"))
-(require 'recentf)
-(recentf-mode 1)
-(setq recentf-max-menu-items 1000)
-(ido-mode t)
-(setq ido-enable-flex-matching t)
-(setq ido-use-filename-at-point nil)
-(setq ido-auto-merge-work-directories-length -1)
-(setq ido-use-virtual-buffers t)
-(ido-ubiquitous-mode 1)
-
-(setq smex-save-file (concat user-emacs-directory ".smex-items"))
-(smex-initialize)
-(require 'saveplace)
-(setq-default save-place t)
-(setq save-place-file (concat user-emacs-directory "places"))
-
-(require 'expand-region)
 
 ;;;;;;;;;;
 ;;Global mode
@@ -222,8 +221,8 @@ KEY must be given in `kbd' notation."
 (global-flycheck-mode)
 (require 'tabbar)
 (tabbar-mode t)
-(global-set-key (kbd "M-[") 'tabbar-backward)
-(global-set-key (kbd "M-]") 'tabbar-forward)
+(global-set-key (kbd "M-{") 'tabbar-backward)
+(global-set-key (kbd "M-}") 'tabbar-forward)
 
 (setq tabbar-ruler-global-tabbar t)    ; get tabbar
 (setq tabbar-ruler-popup-menu t)       ; get popup menu.
