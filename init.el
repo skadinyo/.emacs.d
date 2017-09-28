@@ -1,4 +1,4 @@
-(setq gc-cons-threshold 800000000)
+(setq gc-cons-threshold 80000000)
 
 (require 'package)
 (add-to-list 'package-archives
@@ -244,6 +244,9 @@ KEY must be given in `kbd' notation."
 (global-flycheck-mode)
 (require 'tabbar)
 (tabbar-mode t)
+(global-set-key (kbd "C-{") 'tabbar-backward)
+(global-set-key (kbd "C-}") 'tabbar-forward)
+
 (global-set-key (kbd "M-{") 'tabbar-backward)
 (global-set-key (kbd "M-}") 'tabbar-forward)
 
@@ -287,8 +290,8 @@ KEY must be given in `kbd' notation."
 (global-set-key (kbd "C->") 'mc/mark-next-like-this)
 (global-set-key (kbd "C-<") 'mc/mark-previous-like-this)
 ;; (global-set-key (kbd "C-c C-<") 'mc/mark-all-like-this)
-(global-set-key (kbd "<C-up>") 'better-transpose-sexps-up)
-(global-set-key (kbd "<C-down>") 'better-transpose-sexps-down)
+;; (global-set-key (kbd "<C-up>") 'better-transpose-sexps-up)
+;; (global-set-key (kbd "<C-down>") 'better-transpose-sexps-down)
 (global-set-key (kbd "C-z") 'undo-tree-undo)
 (global-set-key (kbd "C-S-z") 'undo-tree-redo)
 (global-set-key (kbd "C-x g") 'magit-status)
@@ -301,14 +304,15 @@ KEY must be given in `kbd' notation."
 (global-set-key (kbd "M-v") 'yank)
 (global-set-key (kbd "<M-up>") 'er/expand-region)
 (global-set-key (kbd "C-w") 'intellij-kill-current-buffer)
-(global-set-key (kbd "M-1") 'other-window)
+;; (global-set-key (kbd "M-1") 'other-window)
+(global-set-key (kbd "<f12>") 'other-window)
 (global-set-key (kbd "C-f") 'isearch-forward)
 (global-set-key (kbd "C-F") 'isearch-forward-regexp)
 (global-set-key (kbd "C-v") 'yank)
 (global-set-key (kbd "<home>") 'beginning-of-buffer)
 (global-set-key (kbd "<end>") 'end-of-buffer)
 (global-set-key (kbd "C-M-q") 'save-buffers-kill-terminal)
-(global-set-key (kbd "<C-tab>") 'other-window)
+;; (global-set-key (kbd "<C-tab>") 'other-window)
 (global-set-key (kbd "<M-up>") 'er/expand-region)
 (global-set-key (kbd "<M-down>") 'er/contract-region)
 
@@ -421,9 +425,9 @@ KEY must be given in `kbd' notation."
      (define-key paredit-mode-map (kbd "<backspace>") 'paredit-kill-region-or-backward-delete)
      (define-key paredit-mode-map (kbd "<M-right>") 'paredit-forward)
      (define-key paredit-mode-map (kbd "<M-left>")  'paredit-backward)
-     (define-key paredit-mode-map (kbd "<M-up>") nil)
-     (define-key paredit-mode-map (kbd "C-{") nil)
-     (define-key paredit-mode-map (kbd "<M-down>")  nil)
+     ;; (define-key paredit-mode-map (kbd "<M-up>") nil)
+     ;; (define-key paredit-mode-map (kbd "C-{") nil)
+     ;; (define-key paredit-mode-map (kbd "<M-down>")  nil)
      (define-key paredit-mode-map (kbd "<C-right>")  'move-end-of-line)
      (define-key paredit-mode-map (kbd "<C-left>")  'move-beginning-of-line)
      (define-key paredit-mode-map (kbd "M-k") 'paredit-kill)
@@ -438,11 +442,27 @@ KEY must be given in `kbd' notation."
      (define-key paredit-mode-map (kbd "M-w M-q") 'paredit-splice-sexp-killing-backward)
      (define-key paredit-mode-map (kbd "M-w M-e") 'paredit-splice-sexp-killing-forward)
 
-     (define-key paredit-mode-map (kbd "M-d") nil)
-     (define-key paredit-mode-map (kbd "C-d") nil)
+     ;; (define-key paredit-mode-map (kbd "M-d") nil)
+     ;; (define-key paredit-mode-map (kbd "C-d") nil)
+     (define-key paredit-mode-map (kbd "C-{") nil)
+     (define-key paredit-mode-map (kbd "C-}") nil)
      
      ;;(define-key paredit-mode-map (kbd "<C-down>") (transpose-sexps -1))
      ;;(define-key paredit-mode-map (kbd "<C-up>") 'transpose-sexps)
      ))
 
 
+;;;;;;;;;;
+;; Org-mode
+;;;;;;;;;;
+
+(require 'org)
+(define-key global-map "\C-cl" 'org-store-link)
+(define-key global-map "\C-ca" 'org-agenda)
+(setq org-log-done t)
+(add-to-list 'auto-mode-alist '("\\.org$" . org-mode))
+(setq org-support-shift-select t)
+(setq org-todo-keywords
+  '((sequence "TODO" "IN-PROGRESS" "WAITING" "DONE")))
+
+(find-file "~/Dropbox/documents/worknote.org")
