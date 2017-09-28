@@ -31,6 +31,7 @@
     flycheck
     go-mode
     go-guru
+    golint
     hl-todo
     vimish-fold
     keyfreq
@@ -178,7 +179,7 @@ KEY must be given in `kbd' notation."
 (show-paren-mode 1)
 (global-hl-line-mode 1)
 (hl-todo-mode)
-(toggle-frame-maximized)
+;; (toggle-frame-maximized)
 (toggle-indicate-empty-lines)
 (when (fboundp 'scroll-bar-mode)
   (scroll-bar-mode -1))
@@ -425,9 +426,9 @@ KEY must be given in `kbd' notation."
      (define-key paredit-mode-map (kbd "<backspace>") 'paredit-kill-region-or-backward-delete)
      (define-key paredit-mode-map (kbd "<M-right>") 'paredit-forward)
      (define-key paredit-mode-map (kbd "<M-left>")  'paredit-backward)
-     ;; (define-key paredit-mode-map (kbd "<M-up>") nil)
+     (define-key paredit-mode-map (kbd "<M-up>") nil)
      ;; (define-key paredit-mode-map (kbd "C-{") nil)
-     ;; (define-key paredit-mode-map (kbd "<M-down>")  nil)
+     (define-key paredit-mode-map (kbd "<M-down>")  nil)
      (define-key paredit-mode-map (kbd "<C-right>")  'move-end-of-line)
      (define-key paredit-mode-map (kbd "<C-left>")  'move-beginning-of-line)
      (define-key paredit-mode-map (kbd "M-k") 'paredit-kill)
