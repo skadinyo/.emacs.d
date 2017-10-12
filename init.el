@@ -262,25 +262,44 @@ KEY must be given in `kbd' notation."
 
 (use-package tabbar
   :init (tabbar-mode t)
+  :ensure t
+  :defer t
   :bind (("C-{" . tabbar-backward)
          ("C-}" . tabbar-forward)
          ("M-{" . tabbar-backward)
          ("M-}" . tabbar-forward))
-  :config 
-  (require 'tabbar-ruler)
-  (setq tabbar-ruler-global-tabbar t)
-  (setq tabbar-buffer-groups-function 'tabbar-buffer-groups)
-  (tabbar-ruler-group-by-projectile-project)
+  )
+
+(use-package tabbar-ruler
+  :init (require 'tabbar-ruler)
+  :ensure t
+  :defer t
+  :config
+  (progn
+    (tabbar-mode t)
+    (setq tabbar-ruler-global-tabbar t)
+    (setq tabbar-buffer-groups-function 'tabbar-buffer-groups)
+    (tabbar-ruler-group-by-projectile-project))
+  )
+
+(use-package projectile
+  :init (projectile-global-mode)
+  :ensure t
+  :defer t
+  ;;Still don't know how to use bind for simulate-key-press function
+  ;;:bind (("C-p" . (simulate-key-press "C-c p")))
+  :config
+  (global-set-key (kbd "C-p") (simulate-key-press "C-c p"))
   )
 
 ;;Too lazy to change kbd for projectile
-(global-set-key (kbd "C-p") (simulate-key-press "C-c p"))
-;; projectile everywhere!
-(projectile-global-mode)
 
-(vimish-fold-global-mode 1)
-(global-set-key (kbd "C-,") #'vimish-fold)
-(global-set-key (kbd "") #'vimish-fold-delete)
+;; projectile everywhere!
+
+
+;; (vimish-fold-global-mode 1)
+;; (global-set-key (kbd "C-,") #'vimish-fold)
+;; (global-set-key (kbd "") #'vimish-fold-delete)
 ;;;;;;;;;;
 ;; Settings that i still don't know
 ;;;;;;;;;;
