@@ -315,7 +315,7 @@ KEY must be given in `kbd' notation."
 ;;;;;;;;;;
 ;; Global Kbds
 ;;;;;;;;;;
-
+;;How do i manage this :( ??????
 (global-set-key (kbd "C-s") 'isearch-forward-regexp)
 (global-set-key (kbd "C-r") 'isearch-backward-regexp)
 (global-set-key (kbd "C-M-s") 'isearch-forward)
@@ -371,24 +371,30 @@ KEY must be given in `kbd' notation."
 ;; Web Mode
 ;;;;;;;;;;
 
-(defun my-web-mode-hook ()
-  "Hooks for Web mode."
-  (setq web-mode-markup-indent-offset 4) 
-  (setq web-mode-code-indent-offset 4)
-  (setq web-mode-css-indent-offset 4)
-  (setq web-mode-comment-style 4)
-  )
-
-(add-hook 'web-mode-hook  'my-web-mode-hook)
-(add-hook 'html-mode-hook 'subword-mode)
-(add-to-list 'auto-mode-alist '("\\.phtml\\'" . web-mode))
-(add-to-list 'auto-mode-alist '("\\.tpl\\.php\\'" . web-mode))
-(add-to-list 'auto-mode-alist '("\\.[agj]sp\\'" . web-mode))
-(add-to-list 'auto-mode-alist '("\\.as[cp]x\\'" . web-mode))
-(add-to-list 'auto-mode-alist '("\\.erb\\'" . web-mode))
-(add-to-list 'auto-mode-alist '("\\.mustache\\'" . web-mode))
-(add-to-list 'auto-mode-alist '("\\.djhtml\\'" . web-mode))
-(add-to-list 'auto-mode-alist '("\\.html?\\'" . web-mode))
+(use-package web-mode
+  :ensure t
+  :defer t
+  :config
+  (progn
+    ;;Indentation
+    (setq web-mode-markup-indent-offset 4) 
+    (setq web-mode-code-indent-offset 4)
+    (setq web-mode-css-indent-offset 4)
+    (setq web-mode-comment-style 4)
+    
+    (add-hook 'html-mode-hook 'subword-mode)
+    
+    ;;Use only that i know.
+    (add-to-list 'auto-mode-alist '("\\.phtml\\'" . web-mode))
+    (add-to-list 'auto-mode-alist '("\\.html?\\'" . web-mode))
+    ;; (add-to-list 'auto-mode-alist '("\\.tpl\\.php\\'" . web-mode))
+    ;; (add-to-list 'auto-mode-alist '("\\.[agj]sp\\'" . web-mode))
+    ;; (add-to-list 'auto-mode-alist '("\\.as[cp]x\\'" . web-mode))
+    ;; (add-to-list 'auto-mode-alist '("\\.erb\\'" . web-mode))
+    ;; (add-to-list 'auto-mode-alist '("\\.mustache\\'" . web-mode))
+    ;; (add-to-list 'auto-mode-alist '("\\.djhtml\\'" . web-mode))
+   
+    ))
 
 ;; javascript
 ;; (add-to-list 'auto-mode-alist '("\\.js$" . js-mode))
@@ -409,29 +415,31 @@ KEY must be given in `kbd' notation."
 ;; Go Mode
 ;;;;;;;;;;
 
-;;Don't forget to install some of go lang library
+(use-package go-mode
+  :ensure t
+  :defer t
+  :bind (("M-." . godef-jump)
+         ("M-," . godef-jump-other-window)
+         ("M-p" . compile) 
+         ("M-P" . recompile)
+         )
+  :config
+  (progn
+    (setq tab-width 2) 
+    (setq standard-indent 2) 
+    (setq indent-tabs-mode nil)
+    (add-hook 'before-save-hook 'gofmt-before-save)
+    (add-hook 'go-mode-hook 'subword-mode)
+  ))
 
-;;TODO Take GOPATH from bash env
-(setenv "GOPATH" "/Users/skadinyo/Projects/go")
-(add-to-list 'load-path (concat (getenv "GOPATH")  "/src/github.com/nsf/gocode/emacs-company"))
-(add-to-list 'load-path (concat (getenv "GOPATH")  "/src/github.com/golang/lint/misc/emacs"))
-(require 'company-go)
-(require 'golint)
+(use-package company-go
+  :ensure t
+  :defer t
+  :init
+  (with-eval-after-load 'company
+    (add-to-list 'company-backends 'company-go)))
 
-(defun my-go-mode-hook ()
-  (setq-default) 
-  (setq tab-width 2) 
-  (setq standard-indent 2) 
-  (setq indent-tabs-mode nil)
-  (add-hook 'before-save-hook 'gofmt-before-save)
-  (add-hook 'go-mode-hook 'subword-mode)
-  (local-set-key (kbd "M-.") 'godef-jump)
-  (local-set-key (kbd "M-,") 'godef-jump-other-window)
-  (local-set-key (kbd "M-p") 'compile) 
-  (local-set-key (kbd "M-P") 'recompile)
-  )
-
-(add-hook 'go-mode-hook 'my-go-mode-hook)
+;;Explore go-eldoc
 
 ;;;;;;;;;;
 ;; Hook that i still don't know
@@ -443,37 +451,31 @@ KEY must be given in `kbd' notation."
 ;; Paredit
 ;;;;;;;;;;
 
-(eval-after-load 'paredit
-  '(progn
-     (define-key paredit-mode-map (kbd "<backspace>") 'paredit-kill-region-or-backward-delete)
-     (define-key paredit-mode-map (kbd "<M-right>") 'paredit-forward)
-     (define-key paredit-mode-map (kbd "<M-left>")  'paredit-backward)
-     (define-key paredit-mode-map (kbd "<M-up>") nil)
-     ;; (define-key paredit-mode-map (kbd "C-{") nil)
-     (define-key paredit-mode-map (kbd "<M-down>")  nil)
-     (define-key paredit-mode-map (kbd "<C-right>")  'move-end-of-line)
-     (define-key paredit-mode-map (kbd "<C-left>")  'move-beginning-of-line)
-     (define-key paredit-mode-map (kbd "M-k") 'paredit-kill)
-     (define-key paredit-mode-map (kbd "M-s") nil)
-     (define-key paredit-mode-map (kbd "M-s M-d") 'paredit-forward-slurp-sexp)
-     (define-key paredit-mode-map (kbd "M-s M-a") 'paredit-backward-slurp-sexp)
-     
-     (define-key paredit-mode-map (kbd "M-b M-n") 'paredit-forward-barf-sexp)
-     (define-key paredit-mode-map (kbd "M-b M-v") 'paredit-backward-barf-sexp)
-
-     (define-key paredit-mode-map (kbd "M-w M-w") 'paredit-splice-sexp)
-     (define-key paredit-mode-map (kbd "M-w M-q") 'paredit-splice-sexp-killing-backward)
-     (define-key paredit-mode-map (kbd "M-w M-e") 'paredit-splice-sexp-killing-forward)
-
-     ;; (define-key paredit-mode-map (kbd "M-d") nil)
-     ;; (define-key paredit-mode-map (kbd "C-d") nil)
-     (define-key paredit-mode-map (kbd "C-{") nil)
-     (define-key paredit-mode-map (kbd "C-}") nil)
-     
-     ;;(define-key paredit-mode-map (kbd "<C-down>") (transpose-sexps -1))
-     ;;(define-key paredit-mode-map (kbd "<C-up>") 'transpose-sexps)
-     ))
-
+(use-package paredit
+  :ensure t
+  :defer t
+  :bind
+  :config
+  (progn
+    (define-key paredit-mode-map (kbd "<backspace>") 'paredit-kill-region-or-backward-delete)
+    (define-key paredit-mode-map (kbd "<M-right>") 'paredit-forward)
+    (define-key paredit-mode-map (kbd "<M-left>")  'paredit-backward)
+    (define-key paredit-mode-map (kbd "<M-up>") nil)
+    (define-key paredit-mode-map (kbd "<M-down>")  nil)
+    (define-key paredit-mode-map (kbd "<C-right>")  'move-end-of-line)
+    (define-key paredit-mode-map (kbd "<C-left>")  'move-beginning-of-line)
+    (define-key paredit-mode-map (kbd "M-k") 'paredit-kill)
+    (define-key paredit-mode-map (kbd "M-s") nil)
+    (define-key paredit-mode-map (kbd "M-s M-d") 'paredit-forward-slurp-sexp)
+    (define-key paredit-mode-map (kbd "M-s M-a") 'paredit-backward-slurp-sexp)
+    (define-key paredit-mode-map (kbd "M-b M-n") 'paredit-forward-barf-sexp)
+    (define-key paredit-mode-map (kbd "M-b M-v") 'paredit-backward-barf-sexp)
+    (define-key paredit-mode-map (kbd "M-w M-w") 'paredit-splice-sexp)
+    (define-key paredit-mode-map (kbd "M-w M-q") 'paredit-splice-sexp-killing-backward)
+    (define-key paredit-mode-map (kbd "M-w M-e") 'paredit-splice-sexp-killing-forward)
+    (define-key paredit-mode-map (kbd "C-{") nil)
+    (define-key paredit-mode-map (kbd "C-}") nil)
+    ))
 
 ;;;;;;;;;;
 ;; Org-mode
@@ -494,22 +496,36 @@ KEY must be given in `kbd' notation."
 ;; js-mode
 ;;;;;;;;;;
 
+(use-package rjsx-mode
+  :ensure t
+  :defer t
+  :mode "\\.js$"
+  :config
+  (progn
+    (setq indent-tabs-mode nil) ;;Use space instead of tab
+    (setq js-indent-level 2) ;;space width is 2 (default is 4)
+    (setq js2-strict-missing-semi-warning nil)
+    ;; (define-key rjsx-mode-map "<" nil)
+    ;; (define-key rjsx-mode-map (kbd "C-d") nil)
+    ;; (define-key rjsx-mode-map ">" nil)
+  ))
 
-(add-to-list 'company-backends 'company-tern)
-(add-to-list 'auto-mode-alist '(".*\.js\'" . rjsx-mode))
-;; (add-to-list 'auto-mode-alist '("components\/.*\.js\'" . rjsx-mode))
-;; (add-to-list 'auto-mode-alist '("containers\/.*\.js\'" . rjsx-mode))
-;; (setq js-indent-level 2)
-(add-hook 'rjsx-mode-hook
-          (lambda ()
-            (setq indent-tabs-mode nil) ;;Use space instead of tab
-            (setq js-indent-level 2) ;;space width is 2 (default is 4)
-            (setq js2-strict-missing-semi-warning nil))) ;;disable the semicolon warning
+;; (use-package js2-mode
+;;   :defer 1
+;;   :config
+;;   (progn
+;;     (add-to-list 'interpreter-mode-alist '("node" . js2-mode))
 
-;; (with-eval-after-load 'rjsx-mode
-;;   (define-key rjsx-mode-map "<" nil)
-;;   (define-key rjsx-mode-map (kbd "C-d") nil)
-;;   (define-key rjsx-mode-map ">" nil))
+;;     (add-hook 'js2-mode-hook #'setup-tide-mode)
+;;     ;(add-hook 'js2-mode-hook #'tern-mode)
+
+;;     (setq js2-basic-offset 2
+;;           js2-bounce-indent-p t
+;;           js2-strict-missing-semi-warning nil
+;;           js2-concat-multiline-strings nil
+;;           js2-include-node-externs t
+;;           js2-skip-preprocessor-directives t
+;;           js2-strict-inconsistent-return-warning nil)))
 
 ;; (defadvice js-jsx-indent-line (after js-jsx-indent-line-after-hack activate)
 ;;   "Workaround sgml-mode and follow airbnb component style."
@@ -549,17 +565,3 @@ KEY must be given in `kbd' notation."
   (dolist (char-regexp alist)
     (set-char-table-range composition-function-table (car char-regexp)
                           `([,(cdr char-regexp) 0 font-shape-gstring]))))
-(custom-set-variables
- ;; custom-set-variables was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(package-selected-packages
-   (quote
-    (use-package company-tern indium ox-twbs web-mode vimish-fold undo-tree tagedit tabbar-ruler smooth-scrolling smex rjsx-mode rainbow-delimiters projectile paredit multiple-cursors material-theme magit keyfreq ido-ubiquitous hl-todo golint go-guru flycheck expand-region exec-path-from-shell company-quickhelp company-go clojure-mode-extra-font-locking cider beacon))))
-(custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- )
