@@ -250,25 +250,28 @@ KEY must be given in `kbd' notation."
   :defer t
   :config 
   (progn
-    (setq company-idle-delay nil))
+    (setq company-idle-delay nil
+          company-require-match nil))
   :bind (("M-TAB" . company-complete)
          ("TAB" . company-indent-or-complete-common)))
 
-(global-flycheck-mode)
-(require 'tabbar)
-(tabbar-mode t)
-(global-set-key (kbd "C-{") 'tabbar-backward)
-(global-set-key (kbd "C-}") 'tabbar-forward)
+(use-package flycheck
+  :init (global-flycheck-mode)
+  :ensure t
+  :defer t)
 
-(global-set-key (kbd "M-{") 'tabbar-backward)
-(global-set-key (kbd "M-}") 'tabbar-forward)
-
-(setq tabbar-ruler-global-tabbar t)    ; get tabbar
-(require 'tabbar-ruler)
-(setq tabbar-buffer-groups-function 'tabbar-buffer-groups)
-(tabbar-ruler-group-by-projectile-project)
-
-
+(use-package tabbar
+  :init (tabbar-mode t)
+  :bind (("C-{" . tabbar-backward)
+         ("C-}" . tabbar-forward)
+         ("M-{" . tabbar-backward)
+         ("M-}" . tabbar-forward))
+  :config 
+  (require 'tabbar-ruler)
+  (setq tabbar-ruler-global-tabbar t)
+  (setq tabbar-buffer-groups-function 'tabbar-buffer-groups)
+  (tabbar-ruler-group-by-projectile-project)
+  )
 
 ;;Too lazy to change kbd for projectile
 (global-set-key (kbd "C-p") (simulate-key-press "C-c p"))
