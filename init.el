@@ -36,7 +36,8 @@
     vimish-fold
     keyfreq
     smooth-scrolling
-    multiple-cursors))
+    multiple-cursors
+    rjsx-mode))
 
 (package-initialize)
 
@@ -49,6 +50,12 @@
 (dolist (p my-packages)
   (when (not (package-installed-p p))
     (package-install p)))
+
+(unless (package-installed-p 'use-package)
+  (package-refresh-contents)
+  (package-install 'use-package))
+
+(require 'use-package)
 
 ;;;;;;;;;;
 ;; Functions
@@ -162,7 +169,7 @@ KEY must be given in `kbd' notation."
 (require 'powerline)
 (powerline-center-theme)
 (smooth-scrolling-mode 1)
-(setq smooth-scroll-margin 5)
+(setq smooth-scroll-margin 10)
 (electric-pair-mode 1)
 (keyfreq-mode 1)
 (keyfreq-autosave-mode 1)
@@ -172,8 +179,8 @@ KEY must be given in `kbd' notation."
 ;; (load-theme 'dracula t)
 ;; (set-face-background 'mode-line "#510370")
 ;; (set-face-background 'mode-line-inactive "black")
-(setq mouse-wheel-scroll-amount '(1 ((shift) . 1))) ;; one line at a time
-(setq mouse-wheel-progressive-speed nil) ;; don't accelerate scrolling
+;; (setq mouse-wheel-scroll-amount '(1 ((shift) . 1))) ;; one line at a time
+;; (setq mouse-wheel-progressive-speed nil) ;; don't accelerate scrolling
 (blink-cursor-mode 0)
 (global-linum-mode)
 (show-paren-mode 1)
@@ -236,11 +243,16 @@ KEY must be given in `kbd' notation."
 
 ;;Some mode must maybe better to be set up locally
 ;;Like this company mode, I don't want to run company mode in org or scratch
-(global-company-mode)
-(company-quickhelp-mode 1)
-(setq company-idle-delay nil) ; never start completions automatically
-(global-set-key (kbd "M-TAB") #'company-complete)
-(global-set-key (kbd "TAB") #'company-indent-or-complete-common)
+
+(use-package company
+  :init (global-company-mode)
+  :ensure t
+  :defer t
+  :config 
+  (progn
+    (setq company-idle-delay nil))
+  :bind (("M-TAB" . company-complete)
+         ("TAB" . company-indent-or-complete-common)))
 
 (global-flycheck-mode)
 (require 'tabbar)
@@ -332,18 +344,6 @@ KEY must be given in `kbd' notation."
 ;; More at http://www.emacswiki.org/emacs/ParEdit
 (autoload 'enable-paredit-mode "paredit" "Turn on pseudo-structural editing of Lisp code." t)
 (add-hook 'emacs-lisp-mode-hook       #'enable-paredit-mode)
-(add-hook 'eval-expression-minibuffer-setup-hook #'enable-paredit-mode)
-(add-hook 'ielm-mode-hook             #'enable-paredit-mode)
-(add-hook 'lisp-mode-hook             #'enable-paredit-mode)
-(add-hook 'lisp-interaction-mode-hook #'enable-paredit-mode)
-(add-hook 'scheme-mode-hook           #'enable-paredit-mode)
-
-;; eldoc-mode shows documentation in the minibuffer when writing code
-;; http://www.emacswiki.org/emacs/ElDoc
-(add-hook 'emacs-lisp-mode-hook 'turn-on-eldoc-mode)
-(add-hook 'lisp-interaction-mode-hook 'turn-on-eldoc-mode)
-(add-hook 'ielm-mode-hook 'turn-on-eldoc-mode)
-
 
 ;;;;;;;;;;
 ;; Web Mode
@@ -369,9 +369,9 @@ KEY must be given in `kbd' notation."
 (add-to-list 'auto-mode-alist '("\\.html?\\'" . web-mode))
 
 ;; javascript
-(add-to-list 'auto-mode-alist '("\\.js$" . js-mode))
-(add-hook 'js-mode-hook 'subword-mode)
-(setq js-indent-level 2)
+;; (add-to-list 'auto-mode-alist '("\\.js$" . js-mode))
+;; (add-hook 'js-mode-hook 'subword-mode)
+;; (setq js-indent-level 2)
 
 ;;;;;;;;;;
 ;; Clojure Mode
@@ -390,7 +390,7 @@ KEY must be given in `kbd' notation."
 ;;Don't forget to install some of go lang library
 
 ;;TODO Take GOPATH from bash env
-(setenv "GOPATH" "/home/nakama/workspace/go")
+(setenv "GOPATH" "/Users/skadinyo/Projects/go")
 (add-to-list 'load-path (concat (getenv "GOPATH")  "/src/github.com/nsf/gocode/emacs-company"))
 (add-to-list 'load-path (concat (getenv "GOPATH")  "/src/github.com/golang/lint/misc/emacs"))
 (require 'company-go)
@@ -466,4 +466,78 @@ KEY must be given in `kbd' notation."
 (setq org-todo-keywords
   '((sequence "TODO" "IN-PROGRESS" "WAITING" "DONE")))
 
-(find-file "~/Dropbox/documents/worknote.org")
+;; (find-file "~/Dropbox/documents/worknote.org")
+
+;;;;;;;;;;
+;; js-mode
+;;;;;;;;;;
+
+
+(add-to-list 'company-backends 'company-tern)
+(add-to-list 'auto-mode-alist '(".*\.js\'" . rjsx-mode))
+;; (add-to-list 'auto-mode-alist '("components\/.*\.js\'" . rjsx-mode))
+;; (add-to-list 'auto-mode-alist '("containers\/.*\.js\'" . rjsx-mode))
+;; (setq js-indent-level 2)
+(add-hook 'rjsx-mode-hook
+          (lambda ()
+            (setq indent-tabs-mode nil) ;;Use space instead of tab
+            (setq js-indent-level 2) ;;space width is 2 (default is 4)
+            (setq js2-strict-missing-semi-warning nil))) ;;disable the semicolon warning
+
+;; (with-eval-after-load 'rjsx-mode
+;;   (define-key rjsx-mode-map "<" nil)
+;;   (define-key rjsx-mode-map (kbd "C-d") nil)
+;;   (define-key rjsx-mode-map ">" nil))
+
+;; (defadvice js-jsx-indent-line (after js-jsx-indent-line-after-hack activate)
+;;   "Workaround sgml-mode and follow airbnb component style."
+;;   (save-excursion
+;;     (beginning-of-line)
+;;     (if (looking-at-p "^ +\/?> *$")
+;;         (delete-char sgml-basic-offset))))
+
+(when (window-system)
+  (set-default-font "Fira Code"))
+(let ((alist '((33 . ".\\(?:\\(?:==\\|!!\\)\\|[!=]\\)")
+               (35 . ".\\(?:###\\|##\\|_(\\|[#(?[_{]\\)")
+               (36 . ".\\(?:>\\)")
+               (37 . ".\\(?:\\(?:%%\\)\\|%\\)")
+               (38 . ".\\(?:\\(?:&&\\)\\|&\\)")
+               (42 . ".\\(?:\\(?:\\*\\*/\\)\\|\\(?:\\*[*/]\\)\\|[*/>]\\)")
+               (43 . ".\\(?:\\(?:\\+\\+\\)\\|[+>]\\)")
+               (45 . ".\\(?:\\(?:-[>-]\\|<<\\|>>\\)\\|[<>}~-]\\)")
+               (46 . ".\\(?:\\(?:\\.[.<]\\)\\|[.=-]\\)")
+               (47 . ".\\(?:\\(?:\\*\\*\\|//\\|==\\)\\|[*/=>]\\)")
+               (48 . ".\\(?:x[a-zA-Z]\\)")
+               (58 . ".\\(?:::\\|[:=]\\)")
+               (59 . ".\\(?:;;\\|;\\)")
+               (60 . ".\\(?:\\(?:!--\\)\\|\\(?:~~\\|->\\|\\$>\\|\\*>\\|\\+>\\|--\\|<[<=-]\\|=[<=>]\\||>\\)\\|[*$+~/<=>|-]\\)")
+               (61 . ".\\(?:\\(?:/=\\|:=\\|<<\\|=[=>]\\|>>\\)\\|[<=>~]\\)")
+               (62 . ".\\(?:\\(?:=>\\|>[=>-]\\)\\|[=>-]\\)")
+               (63 . ".\\(?:\\(\\?\\?\\)\\|[:=?]\\)")
+               (91 . ".\\(?:]\\)")
+               (92 . ".\\(?:\\(?:\\\\\\\\\\)\\|\\\\\\)")
+               (94 . ".\\(?:=\\)")
+               (119 . ".\\(?:ww\\)")
+               (123 . ".\\(?:-\\)")
+               (124 . ".\\(?:\\(?:|[=|]\\)\\|[=>|]\\)")
+               (126 . ".\\(?:~>\\|~~\\|[>=@~-]\\)")
+               )
+             ))
+  (dolist (char-regexp alist)
+    (set-char-table-range composition-function-table (car char-regexp)
+                          `([,(cdr char-regexp) 0 font-shape-gstring]))))
+(custom-set-variables
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(package-selected-packages
+   (quote
+    (use-package company-tern indium ox-twbs web-mode vimish-fold undo-tree tagedit tabbar-ruler smooth-scrolling smex rjsx-mode rainbow-delimiters projectile paredit multiple-cursors material-theme magit keyfreq ido-ubiquitous hl-todo golint go-guru flycheck expand-region exec-path-from-shell company-quickhelp company-go clojure-mode-extra-font-locking cider beacon))))
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ )
