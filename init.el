@@ -9,22 +9,15 @@
 
 (defvar my-packages
   '(paredit
-    beacon
     clojure-mode
     expand-region
     clojure-mode-extra-font-locking
     cider
-    ido-ubiquitous
-    smex
     rainbow-delimiters
     tagedit
     magit
-    projectile
-    company
     company-quickhelp
     company-go
-    web-mode
-    undo-tree
     material-theme
     tabbar
     tabbar-ruler
@@ -32,10 +25,7 @@
     go-mode
     go-guru
     golint
-    hl-todo
-    vimish-fold
     keyfreq
-    smooth-scrolling
     multiple-cursors
     rjsx-mode))
 
@@ -98,7 +88,7 @@ KEY must be given in `kbd' notation."
     (kill-buffer nil)))
 
 (defun cider-dev>reset ()
-  "dev>(reset). convenient function to reset my clojure development system"
+  "Convenient function to reset my clojure development system."
   (interactive)
   (cider-switch-to-repl-buffer)
   (insert "(dev/reset)")
@@ -107,7 +97,7 @@ KEY must be given in `kbd' notation."
   )
 
 (defun cider-dev>c.t.n.repl/refresh ()
-  "dev>(reset). convenient function to reset my clojure development system"
+  "Convenient function to reset my clojure development system."
   (interactive)
   (cider-switch-to-repl-buffer)
   (insert "(clojure.tools.namespace.repl/refresh)")
@@ -115,12 +105,8 @@ KEY must be given in `kbd' notation."
   ;;(cider-switch-to-last-clojure-buffer)
   )
 
-(defun cider-dev>eval-last-repl-input ()
-  (interactive)
-  )
-
 (defun better-transpose-sexps-up (arg)
-  "mimic move form up cursive"
+  "Mimic move form up cursive."
   (interactive "*p")
   (transpose-sexps arg)
   (paredit-backward)
@@ -129,7 +115,7 @@ KEY must be given in `kbd' notation."
   )
 
 (defun better-transpose-sexps-down (arg)
-  "mimic move form up cursive"
+  "Mimic move form up cursive."
   (interactive "*p")
   (paredit-forward)
   (transpose-sexps arg)
@@ -138,7 +124,7 @@ KEY must be given in `kbd' notation."
   )
 
 (defun experiment-repair-all-unused-space ()
-  "experiment stuff"
+  "Experiment stuff."
   (interactive)
   (beginning-of-buffer)
   (while (re-search-forward "[ ]+" nil t)
@@ -147,7 +133,7 @@ KEY must be given in `kbd' notation."
  
 ;; comments
 (defun toggle-comment-on-line ()
-  "comment or uncomment current line"
+  "Comment or uncomment current line."
   (interactive)
   (comment-or-uncomment-region (line-beginning-position) (line-end-position)))
 (global-set-key (kbd "C-;") 'toggle-comment-on-line)
@@ -162,50 +148,71 @@ KEY must be given in `kbd' notation."
 ;; Better default
 ;;;;;;;;;;
 (require 'uniquify)
-(require 'recentf)
+
 (require 'saveplace)
 (require 'expand-region)
-(require 'keyfreq)
-(require 'powerline)
-(powerline-center-theme)
-(smooth-scrolling-mode 1)
-(setq smooth-scroll-margin 10)
+
 (electric-pair-mode 1)
-(keyfreq-mode 1)
-(keyfreq-autosave-mode 1)
-(when (window-system)
-  (set-default-font "Fira Code Retina"))
+
+(use-package powerline
+  :defer t
+  :ensure t
+  :init (powerline-center-theme))
+
 (load-theme 'material t)
-;; (load-theme 'dracula t)
-;; (set-face-background 'mode-line "#510370")
-;; (set-face-background 'mode-line-inactive "black")
-;; (setq mouse-wheel-scroll-amount '(1 ((shift) . 1))) ;; one line at a time
-;; (setq mouse-wheel-progressive-speed nil) ;; don't accelerate scrolling
 (blink-cursor-mode 0)
 (global-linum-mode)
 (show-paren-mode 1)
-(global-hl-line-mode 1)
-(hl-todo-mode)
-;; (toggle-frame-maximized)
 (toggle-indicate-empty-lines)
 (when (fboundp 'scroll-bar-mode)
   (scroll-bar-mode -1))
-(global-undo-tree-mode 1)
+
 (delete-selection-mode 1)
 (fset 'yes-or-no-p 'y-or-n-p)
 (tool-bar-mode -1)
+
+(use-package keyfreq
+  :defer t
+  :ensure t
+  :init (keyfreq-mode 1)
+  :config 
+  (progn 
+    (keyfreq-autosave-mode 1)))
+
+(use-package recentf
+  :defer t
+  :ensure t
+  :init (require 'recentf)
+  :config
+  (progn 
+    (setq 
+     recentf-save-file (concat user-emacs-directory ".recentf")
+     recentf-max-menu-items 50)))
+
+(use-package undo-tree
+  :defer t
+  :ensure t
+  :init (global-undo-tree-mode 1)
+  :bind (("C-z" . undo-tree-undo)
+         ("M-z" . undo-tree-undo)
+         ("C-S-z" . undo-tree-redo)
+         ("M-Z" . undo-tree-redo)))
+
+(use-package expand-region
+  :defer t
+  :ensure t
+  :bind (("<M-up>" . er/expand-region)
+         ("<M-down>" . er/contract-region)))
 
 (setq-default 
  frame-title-format "%b (%f)"
  indent-tabs-mode nil
  indicate-empty-lines t
- sh-basic-offset 2
- sh-indentation 2
  save-place t)
 
 (setq
- x-select-enable-clipboard t
- x-select-enable-primary t
+ select-enable-clipboard t
+ select-enable-primary t
  save-interprogram-paste-before-kill t
  
  backup-directory-alist `(("." . ,(concat user-emacs-directory "backups")))
@@ -216,26 +223,45 @@ KEY must be given in `kbd' notation."
  create-lockfiles nil
  inhibit-startup-message t
 
- recentf-save-file (concat user-emacs-directory ".recentf")
- recentf-max-menu-items 100
- recentf-auto-cleanup 'never
- ido-enable-flex-matching t
- ido-use-filename-at-point nil
- ido-auto-merge-work-directories-length -1
- ido-use-virtual-buffers t
- smex-save-file (concat user-emacs-directory ".smex-items")
- save-place-file (concat user-emacs-directory "places")
  uniquify-buffer-name-style 'forward
  scroll-conservatively 10000
  scroll-preserve-screen-position t)
 
-(smex-initialize)
-(recentf-mode 1)
-(ido-ubiquitous-mode 1)
-(ido-mode t)
+(use-package smex
+  :ensure t
+  :defer t
+  :init (smex-initialize)
+  :bind (("C-1" . smex))
+  :config 
+  (progn
+    (setq
+     smex-save-file (concat user-emacs-directory ".smex-items")
+     save-place-file (concat user-emacs-directory "places"))))
 
-(defadvice grep (after delete-grep-header activate) (delete-grep-header))
-(defadvice rgrep (after delete-grep-header activate) (delete-grep-header))
+(use-package ido
+  :ensure t
+  :defer t
+  :init (ido-mode)
+  :bind (("C-o" . ido-find-file)
+         ("C-b" . ido-switch-buffer))
+  :config
+  (progn
+    (setq 
+     ido-enable-flex-matching t
+     ido-use-filename-at-point nil
+     ido-auto-merge-work-directories-length -1
+     ido-use-virtual-buffers t)
+    )
+  )
+
+(use-package ido-ubiquitous
+  :ensure t
+  :defer t
+  :init (ido-ubiquitous-mode 1))
+
+;; I think it make grep slower. I think
+;; (defadvice grep (after delete-grep-header activate) (delete-grep-header))
+;; (defadvice rgrep (after delete-grep-header activate) (delete-grep-header))
 
 ;;;;;;;;;;
 ;;Global mode
@@ -289,6 +315,9 @@ KEY must be given in `kbd' notation."
   ;;Still don't know how to use bind for simulate-key-press function
   ;;:bind (("C-p" . (simulate-key-press "C-c p")))
   :config
+  ;; (projectile-project-root)
+  (setq projectile-indexing-method 'native)
+  (setq projectile-enable-caching t)
   (global-set-key (kbd "C-p") (simulate-key-press "C-c p"))
   )
 
@@ -316,8 +345,6 @@ KEY must be given in `kbd' notation."
 ;; Global Kbds
 ;;;;;;;;;;
 ;;How do i manage this :( ??????
-(global-set-key (kbd "C-s") 'isearch-forward-regexp)
-(global-set-key (kbd "C-r") 'isearch-backward-regexp)
 (global-set-key (kbd "C-M-s") 'isearch-forward)
 (global-set-key (kbd "C-M-r") 'isearch-backward)
 (global-set-key (kbd "C-;") 'toggle-comment-on-line)
@@ -327,17 +354,12 @@ KEY must be given in `kbd' notation."
 ;; (global-set-key (kbd "C-c C-<") 'mc/mark-all-like-this)
 ;; (global-set-key (kbd "<C-up>") 'better-transpose-sexps-up)
 ;; (global-set-key (kbd "<C-down>") 'better-transpose-sexps-down)
-(global-set-key (kbd "C-z") 'undo-tree-undo)
-(global-set-key (kbd "C-S-z") 'undo-tree-redo)
 (global-set-key (kbd "C-x g") 'magit-status)
-(global-set-key (kbd "C-1") 'smex)
+
 (global-set-key (kbd "C-s") 'save-buffer)
-(global-set-key (kbd "C-o") 'ido-find-file)
-(global-set-key (kbd "C-b") 'ido-switch-buffer)
 (global-set-key (kbd "M-x") 'kill-region)
 (global-set-key (kbd "M-c") 'copy-region-as-kill)
 (global-set-key (kbd "M-v") 'yank)
-(global-set-key (kbd "<M-up>") 'er/expand-region)
 (global-set-key (kbd "C-w") 'intellij-kill-current-buffer)
 ;; (global-set-key (kbd "M-1") 'other-window)
 (global-set-key (kbd "<f12>") 'other-window)
@@ -346,17 +368,15 @@ KEY must be given in `kbd' notation."
 (global-set-key (kbd "C-v") 'yank)
 (global-set-key (kbd "<home>") 'beginning-of-buffer)
 (global-set-key (kbd "<end>") 'end-of-buffer)
-(global-set-key (kbd "C-M-q") 'save-buffers-kill-terminal)
+;; (global-set-key (kbd "C-M-q") 'save-buffers-kill-terminal)
 ;; (global-set-key (kbd "<C-tab>") 'other-window)
-(global-set-key (kbd "<M-up>") 'er/expand-region)
-(global-set-key (kbd "<M-down>") 'er/contract-region)
 
 ;; TODO move to clojure mode 
-(global-set-key (kbd "C-S-l") 'cider-load-buffer)
-(global-set-key (kbd "C-S-n") 'cider-repl-set-ns)
-(global-set-key (kbd "C-S-p") 'intellij-send-top-form-to-repl)
-(global-set-key (kbd "<f5>") 'cider-dev>reset)
-(global-set-key (kbd "<f6>") 'cider-dev>c.t.n.repl/refresh)
+;; (global-set-key (kbd "C-S-l") 'cider-load-buffer)
+;; (global-set-key (kbd "C-S-n") 'cider-repl-set-ns)
+;; (global-set-key (kbd "C-S-p") 'intellij-send-top-form-to-repl)
+;; (global-set-key (kbd "<f5>") 'cider-dev>reset)
+;; (global-set-key (kbd "<f6>") 'cider-dev>c.t.n.repl/refresh)
 
 ;;;;;;;;;;
 ;; Elisp
@@ -402,35 +422,44 @@ KEY must be given in `kbd' notation."
 ;; (setq js-indent-level 2)
 
 ;;;;;;;;;;
-;; Clojure Mode
-;;;;;;;;;;
-
-;; Enable paredit for Clojure
-(add-hook 'clojure-mode-hook 'enable-paredit-mode)
-(add-hook 'clojure-mode-hook 'subword-mode)
-(require 'clojure-mode-extra-font-locking)
-
-
-;;;;;;;;;;
 ;; Go Mode
 ;;;;;;;;;;
+(setenv "GOPATH" "/Users/skadinyo/Projects/go")
 
-(use-package go-mode
-  :ensure t
-  :defer t
-  :bind (("M-." . godef-jump)
-         ("M-," . godef-jump-other-window)
-         ("M-p" . compile) 
-         ("M-P" . recompile)
-         )
-  :config
-  (progn
-    (setq tab-width 2) 
-    (setq standard-indent 2) 
-    (setq indent-tabs-mode nil)
-    (add-hook 'before-save-hook 'gofmt-before-save)
-    (add-hook 'go-mode-hook 'subword-mode)
-  ))
+(defun my-go-mode-hook ()
+  (setq-default) 
+  (setq tab-width 2) 
+  (setq standard-indent 2) 
+  (setq indent-tabs-mode nil)
+  (add-hook 'before-save-hook 'gofmt-before-save)
+  (add-hook 'go-mode-hook 'subword-mode)
+  (local-set-key (kbd "M-.") 'godef-jump)
+  (local-set-key (kbd "M-,") 'godef-jump-other-window)
+  (local-set-key (kbd "M-p") 'compile) 
+  (local-set-key (kbd "M-P") 'recompile)
+  )
+
+(add-hook 'go-mode-hook 'my-go-mode-hook)
+
+;; Bug, indentation won't work.
+;; Don't know why.
+;; (use-package go-mode
+;;   :ensure t
+;;   :defer t
+;;   :mode "\\.go$"
+;;   :init 
+;;   (progn
+;;     (setq tab-width 2) 
+;;     (setq standard-indent 2) 
+;;     (setq indent-tabs-mode nil))
+;;   :bind (("M-." . godef-jump)
+;;          ("M-," . godef-jump-other-window)
+;;          ("M-p" . compile) 
+;;          ("M-P" . recompile))
+;;   :config  
+;;   (add-hook 'before-save-hook 'gofmt-before-save)
+;;   (add-hook 'go-mode-hook 'subword-mode)
+;;   )
 
 (use-package company-go
   :ensure t
@@ -454,7 +483,6 @@ KEY must be given in `kbd' notation."
 (use-package paredit
   :ensure t
   :defer t
-  :bind
   :config
   (progn
     (define-key paredit-mode-map (kbd "<backspace>") 'paredit-kill-region-or-backward-delete)
@@ -481,14 +509,20 @@ KEY must be given in `kbd' notation."
 ;; Org-mode
 ;;;;;;;;;;
 
-(require 'org)
-(define-key global-map "\C-cl" 'org-store-link)
-(define-key global-map "\C-ca" 'org-agenda)
-(setq org-log-done t)
-(add-to-list 'auto-mode-alist '("\\.org$" . org-mode))
-(setq org-support-shift-select t)
-(setq org-todo-keywords
-  '((sequence "TODO" "IN-PROGRESS" "WAITING" "DONE")))
+(use-package org
+  :ensure t
+  :defer t
+  :mode "\\.org$"
+  :bind (("\C-cl" . org-store-link)
+         ("\C-ca" . org-agenda))
+  :config
+  (progn
+    (setq org-log-done t)
+    (setq org-support-shift-select t)
+    (setq org-todo-keywords
+          '((sequence "TODO" "IN-PROGRESS" "WAITING" "DONE")))
+
+    ))
 
 ;; (find-file "~/Dropbox/documents/worknote.org")
 
@@ -535,7 +569,7 @@ KEY must be given in `kbd' notation."
 ;;         (delete-char sgml-basic-offset))))
 
 (when (window-system)
-  (set-default-font "Fira Code"))
+  (set-default-font "Fira Code Retina"))
 (let ((alist '((33 . ".\\(?:\\(?:==\\|!!\\)\\|[!=]\\)")
                (35 . ".\\(?:###\\|##\\|_(\\|[#(?[_{]\\)")
                (36 . ".\\(?:>\\)")
@@ -565,3 +599,4 @@ KEY must be given in `kbd' notation."
   (dolist (char-regexp alist)
     (set-char-table-range composition-function-table (car char-regexp)
                           `([,(cdr char-regexp) 0 font-shape-gstring]))))
+
