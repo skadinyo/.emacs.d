@@ -10,23 +10,16 @@
 (defvar my-packages
   '(paredit
     clojure-mode
-    expand-region
     clojure-mode-extra-font-locking
     cider
     rainbow-delimiters
-    tagedit
     magit
-    company-quickhelp
-    company-go
     material-theme
-    tabbar
-    tabbar-ruler
-    flycheck
+    
     go-mode
     go-guru
     golint
-    keyfreq
-    multiple-cursors
+    
     rjsx-mode))
 
 (package-initialize)
@@ -46,6 +39,20 @@
   (package-install 'use-package))
 
 (require 'use-package)
+
+(use-package esup
+  :defer t
+  :ensure t)
+
+(use-package keyfreq
+  :defer t
+  :ensure t)
+
+(use-package multiple-cursors
+  :ensure t
+  :defer t
+  :bind (("C->" . mc/mark-next-like-this)
+         ("C-<" . mc/mark-previous-like-this)))
 
 ;;;;;;;;;;
 ;; Functions
@@ -150,14 +157,18 @@ KEY must be given in `kbd' notation."
 (require 'uniquify)
 
 (require 'saveplace)
-(require 'expand-region)
 
 (electric-pair-mode 1)
+;; (use-package powerline
+;;   :defer t
+;;   :ensure t
+;;   :init (powerline-center-theme))
 
-(use-package powerline
+(use-package diff-hl
   :defer t
   :ensure t
-  :init (powerline-center-theme))
+  :init (diff-hl-mode)
+  )
 
 (load-theme 'material t)
 (blink-cursor-mode 0)
@@ -250,8 +261,9 @@ KEY must be given in `kbd' notation."
      ido-enable-flex-matching t
      ido-use-filename-at-point nil
      ido-auto-merge-work-directories-length -1
+    ;; ido-max-prospects 10
      ido-use-virtual-buffers t)
-    )
+    (add-to-list 'ido-ignore-files "\\.DS_Store"))
   )
 
 (use-package ido-ubiquitous
@@ -325,10 +337,6 @@ KEY must be given in `kbd' notation."
 
 ;; projectile everywhere!
 
-
-;; (vimish-fold-global-mode 1)
-;; (global-set-key (kbd "C-,") #'vimish-fold)
-;; (global-set-key (kbd "") #'vimish-fold-delete)
 ;;;;;;;;;;
 ;; Settings that i still don't know
 ;;;;;;;;;;
@@ -336,10 +344,10 @@ KEY must be given in `kbd' notation."
 ;; Sets up exec-path-from shell
 ;; https://github.com/purcell/exec-path-from-shell
 
-(when (memq window-system '(mac ns))
-  (exec-path-from-shell-initialize)
-  (exec-path-from-shell-copy-envs
-   '("PATH")))
+;; (when (memq window-system '(mac ns))
+;;   (exec-path-from-shell-initialize)
+;;   (exec-path-from-shell-copy-envs
+;;    '("PATH")))
 
 ;;;;;;;;;;
 ;; Global Kbds
@@ -348,12 +356,6 @@ KEY must be given in `kbd' notation."
 (global-set-key (kbd "C-M-s") 'isearch-forward)
 (global-set-key (kbd "C-M-r") 'isearch-backward)
 (global-set-key (kbd "C-;") 'toggle-comment-on-line)
-;; (global-set-key (kbd "C-S-c C-S-c") 'mc/edit-lines)
-(global-set-key (kbd "C->") 'mc/mark-next-like-this)
-(global-set-key (kbd "C-<") 'mc/mark-previous-like-this)
-;; (global-set-key (kbd "C-c C-<") 'mc/mark-all-like-this)
-;; (global-set-key (kbd "<C-up>") 'better-transpose-sexps-up)
-;; (global-set-key (kbd "<C-down>") 'better-transpose-sexps-down)
 (global-set-key (kbd "C-x g") 'magit-status)
 
 (global-set-key (kbd "C-s") 'save-buffer)
@@ -368,8 +370,6 @@ KEY must be given in `kbd' notation."
 (global-set-key (kbd "C-v") 'yank)
 (global-set-key (kbd "<home>") 'beginning-of-buffer)
 (global-set-key (kbd "<end>") 'end-of-buffer)
-;; (global-set-key (kbd "C-M-q") 'save-buffers-kill-terminal)
-;; (global-set-key (kbd "<C-tab>") 'other-window)
 
 ;; TODO move to clojure mode 
 ;; (global-set-key (kbd "C-S-l") 'cider-load-buffer)
@@ -385,7 +385,7 @@ KEY must be given in `kbd' notation."
 ;; Automatically load paredit when editing a lisp file
 ;; More at http://www.emacswiki.org/emacs/ParEdit
 (autoload 'enable-paredit-mode "paredit" "Turn on pseudo-structural editing of Lisp code." t)
-(add-hook 'emacs-lisp-mode-hook       #'enable-paredit-mode)
+(add-hook 'emacs-lisp-mode-hook #'enable-paredit-mode)
 
 ;;;;;;;;;;
 ;; Web Mode
@@ -425,7 +425,10 @@ KEY must be given in `kbd' notation."
 ;; Go Mode
 ;;;;;;;;;;
 (setenv "GOPATH" "/Users/skadinyo/Projects/go")
-
+(add-to-list 'load-path (concat (getenv "GOPATH")  "/src/github.com/nsf/gocode/emacs-company"))
+(add-to-list 'load-path (concat (getenv "GOPATH")  "/src/github.com/golang/lint/misc/emacs"))
+(require 'company-go)
+(require 'golint)
 (defun my-go-mode-hook ()
   (setq-default) 
   (setq tab-width 2) 
@@ -600,3 +603,20 @@ KEY must be given in `kbd' notation."
     (set-char-table-range composition-function-table (car char-regexp)
                           `([,(cdr char-regexp) 0 font-shape-gstring]))))
 
+(custom-set-variables
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(custom-safe-themes
+   (quote
+    ("a27c00821ccfd5a78b01e4f35dc056706dd9ede09a8b90c6955ae6a390eb1c1e" "3c83b3676d796422704082049fc38b6966bcad960f896669dfc21a7a37a748fa" default)))
+ '(package-selected-packages
+   (quote
+    (diff-hl smart-mode-line esup web-mode use-package undo-tree tagedit tabbar-ruler smex rjsx-mode rainbow-delimiters projectile paredit multiple-cursors material-theme magit keyfreq ido-ubiquitous golint go-guru flycheck expand-region exec-path-from-shell company-quickhelp company-go clojure-mode-extra-font-locking cider))))
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ )
