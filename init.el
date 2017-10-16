@@ -1,5 +1,3 @@
-(setq gc-cons-threshold 80000000)
-
 (require 'package)
 (add-to-list 'package-archives
   '("melpa" . "http://melpa.milkbox.net/packages/") t)
@@ -53,6 +51,7 @@
   :defer t
   :bind (("C->" . mc/mark-next-like-this)
          ("C-<" . mc/mark-previous-like-this)))
+
 
 ;;;;;;;;;;
 ;; Functions
@@ -172,7 +171,7 @@ KEY must be given in `kbd' notation."
 
 (load-theme 'material t)
 (blink-cursor-mode 0)
-(global-linum-mode)
+;; (global-linum-mode)
 (show-paren-mode 1)
 (toggle-indicate-empty-lines)
 (when (fboundp 'scroll-bar-mode)
@@ -215,6 +214,11 @@ KEY must be given in `kbd' notation."
   :bind (("<M-up>" . er/expand-region)
          ("<M-down>" . er/contract-region)))
 
+(when (memq window-system '(mac ns))
+  (exec-path-from-shell-initialize)
+  (exec-path-from-shell-copy-envs
+   '("PATH")))
+
 (setq-default 
  frame-title-format "%b (%f)"
  indent-tabs-mode nil
@@ -226,17 +230,18 @@ KEY must be given in `kbd' notation."
  select-enable-primary t
  save-interprogram-paste-before-kill t
  
- backup-directory-alist `(("." . ,(concat user-emacs-directory "backups")))
+ ;; backup-directory-alist `(("." . ,(concat user-emacs-directory "backups")))
  auto-save-default nil
  ring-bell-function 'ignore
  electric-indent-mode nil
- column-number-mode t
+ ;; column-number-mode t
  create-lockfiles nil
  inhibit-startup-message t
 
  uniquify-buffer-name-style 'forward
  scroll-conservatively 10000
- scroll-preserve-screen-position t)
+ scroll-preserve-screen-position t
+ )
 
 (use-package smex
   :ensure t
@@ -328,7 +333,7 @@ KEY must be given in `kbd' notation."
   ;;:bind (("C-p" . (simulate-key-press "C-c p")))
   :config
   ;; (projectile-project-root)
-  (setq projectile-indexing-method 'native)
+  ;; (setq projectile-indexing-method 'native)
   (setq projectile-enable-caching t)
   (global-set-key (kbd "C-p") (simulate-key-press "C-c p"))
   )
@@ -425,44 +430,35 @@ KEY must be given in `kbd' notation."
 ;; Go Mode
 ;;;;;;;;;;
 (setenv "GOPATH" "/Users/skadinyo/Projects/go")
-(add-to-list 'load-path (concat (getenv "GOPATH")  "/src/github.com/nsf/gocode/emacs-company"))
-(add-to-list 'load-path (concat (getenv "GOPATH")  "/src/github.com/golang/lint/misc/emacs"))
-(require 'company-go)
-(require 'golint)
 (defun my-go-mode-hook ()
-  (setq-default) 
-  (setq tab-width 2) 
+  (setq tab-width 2)
   (setq standard-indent 2) 
   (setq indent-tabs-mode nil)
   (add-hook 'before-save-hook 'gofmt-before-save)
   (add-hook 'go-mode-hook 'subword-mode)
-  (local-set-key (kbd "M-.") 'godef-jump)
-  (local-set-key (kbd "M-,") 'godef-jump-other-window)
-  (local-set-key (kbd "M-p") 'compile) 
-  (local-set-key (kbd "M-P") 'recompile)
+  ;; (local-set-key (kbd "M-.") 'godef-jump)
+  ;; (local-set-key (kbd "M-,") 'godef-jump-other-window)
+  ;; (local-set-key (kbd "M-p") 'compile) 
+  ;; (local-set-key (kbd "M-P") 'recompile)
   )
 
-(add-hook 'go-mode-hook 'my-go-mode-hook)
+;; 
 
 ;; Bug, indentation won't work.
 ;; Don't know why.
-;; (use-package go-mode
-;;   :ensure t
-;;   :defer t
-;;   :mode "\\.go$"
-;;   :init 
-;;   (progn
-;;     (setq tab-width 2) 
-;;     (setq standard-indent 2) 
-;;     (setq indent-tabs-mode nil))
-;;   :bind (("M-." . godef-jump)
-;;          ("M-," . godef-jump-other-window)
-;;          ("M-p" . compile) 
-;;          ("M-P" . recompile))
-;;   :config  
-;;   (add-hook 'before-save-hook 'gofmt-before-save)
-;;   (add-hook 'go-mode-hook 'subword-mode)
-;;   )
+(use-package go-mode
+  :ensure t
+  :defer t
+  :mode "\\.go$"
+  :bind (("M-." . godef-jump)
+         ("M-," . godef-jump-other-window)
+         ("M-p" . compile) 
+         ("M-P" . recompile))
+  :config
+  (add-hook 'go-mode-hook 'my-go-mode-hook)
+  (add-hook 'before-save-hook 'gofmt-before-save)
+  (add-hook 'go-mode-hook 'subword-mode)
+  )
 
 (use-package company-go
   :ensure t
@@ -571,52 +567,34 @@ KEY must be given in `kbd' notation."
 ;;     (if (looking-at-p "^ +\/?> *$")
 ;;         (delete-char sgml-basic-offset))))
 
-(when (window-system)
-  (set-default-font "Fira Code Retina"))
-(let ((alist '((33 . ".\\(?:\\(?:==\\|!!\\)\\|[!=]\\)")
-               (35 . ".\\(?:###\\|##\\|_(\\|[#(?[_{]\\)")
-               (36 . ".\\(?:>\\)")
-               (37 . ".\\(?:\\(?:%%\\)\\|%\\)")
-               (38 . ".\\(?:\\(?:&&\\)\\|&\\)")
-               (42 . ".\\(?:\\(?:\\*\\*/\\)\\|\\(?:\\*[*/]\\)\\|[*/>]\\)")
-               (43 . ".\\(?:\\(?:\\+\\+\\)\\|[+>]\\)")
-               (45 . ".\\(?:\\(?:-[>-]\\|<<\\|>>\\)\\|[<>}~-]\\)")
-               (46 . ".\\(?:\\(?:\\.[.<]\\)\\|[.=-]\\)")
-               (47 . ".\\(?:\\(?:\\*\\*\\|//\\|==\\)\\|[*/=>]\\)")
-               (48 . ".\\(?:x[a-zA-Z]\\)")
-               (58 . ".\\(?:::\\|[:=]\\)")
-               (59 . ".\\(?:;;\\|;\\)")
-               (60 . ".\\(?:\\(?:!--\\)\\|\\(?:~~\\|->\\|\\$>\\|\\*>\\|\\+>\\|--\\|<[<=-]\\|=[<=>]\\||>\\)\\|[*$+~/<=>|-]\\)")
-               (61 . ".\\(?:\\(?:/=\\|:=\\|<<\\|=[=>]\\|>>\\)\\|[<=>~]\\)")
-               (62 . ".\\(?:\\(?:=>\\|>[=>-]\\)\\|[=>-]\\)")
-               (63 . ".\\(?:\\(\\?\\?\\)\\|[:=?]\\)")
-               (91 . ".\\(?:]\\)")
-               (92 . ".\\(?:\\(?:\\\\\\\\\\)\\|\\\\\\)")
-               (94 . ".\\(?:=\\)")
-               (119 . ".\\(?:ww\\)")
-               (123 . ".\\(?:-\\)")
-               (124 . ".\\(?:\\(?:|[=|]\\)\\|[=>|]\\)")
-               (126 . ".\\(?:~>\\|~~\\|[>=@~-]\\)")
-               )
-             ))
-  (dolist (char-regexp alist)
-    (set-char-table-range composition-function-table (car char-regexp)
-                          `([,(cdr char-regexp) 0 font-shape-gstring]))))
-
-(custom-set-variables
- ;; custom-set-variables was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(custom-safe-themes
-   (quote
-    ("a27c00821ccfd5a78b01e4f35dc056706dd9ede09a8b90c6955ae6a390eb1c1e" "3c83b3676d796422704082049fc38b6966bcad960f896669dfc21a7a37a748fa" default)))
- '(package-selected-packages
-   (quote
-    (diff-hl smart-mode-line esup web-mode use-package undo-tree tagedit tabbar-ruler smex rjsx-mode rainbow-delimiters projectile paredit multiple-cursors material-theme magit keyfreq ido-ubiquitous golint go-guru flycheck expand-region exec-path-from-shell company-quickhelp company-go clojure-mode-extra-font-locking cider))))
-(custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- )
+;; (when (window-system)
+;;   (set-default-font "Fira Code Retina"))
+;; (let ((alist '((33 . ".\\(?:\\(?:==\\|!!\\)\\|[!=]\\)")
+;;                (35 . ".\\(?:###\\|##\\|_(\\|[#(?[_{]\\)")
+;;                (36 . ".\\(?:>\\)")
+;;                (37 . ".\\(?:\\(?:%%\\)\\|%\\)")
+;;                (38 . ".\\(?:\\(?:&&\\)\\|&\\)")
+;;                (42 . ".\\(?:\\(?:\\*\\*/\\)\\|\\(?:\\*[*/]\\)\\|[*/>]\\)")
+;;                (43 . ".\\(?:\\(?:\\+\\+\\)\\|[+>]\\)")
+;;                (45 . ".\\(?:\\(?:-[>-]\\|<<\\|>>\\)\\|[<>}~-]\\)")
+;;                (46 . ".\\(?:\\(?:\\.[.<]\\)\\|[.=-]\\)")
+;;                (47 . ".\\(?:\\(?:\\*\\*\\|//\\|==\\)\\|[*/=>]\\)")
+;;                (48 . ".\\(?:x[a-zA-Z]\\)")
+;;                (58 . ".\\(?:::\\|[:=]\\)")
+;;                (59 . ".\\(?:;;\\|;\\)")
+;;                (60 . ".\\(?:\\(?:!--\\)\\|\\(?:~~\\|->\\|\\$>\\|\\*>\\|\\+>\\|--\\|<[<=-]\\|=[<=>]\\||>\\)\\|[*$+~/<=>|-]\\)")
+;;                (61 . ".\\(?:\\(?:/=\\|:=\\|<<\\|=[=>]\\|>>\\)\\|[<=>~]\\)")
+;;                (62 . ".\\(?:\\(?:=>\\|>[=>-]\\)\\|[=>-]\\)")
+;;                (63 . ".\\(?:\\(\\?\\?\\)\\|[:=?]\\)")
+;;                (91 . ".\\(?:]\\)")
+;;                (92 . ".\\(?:\\(?:\\\\\\\\\\)\\|\\\\\\)")
+;;                (94 . ".\\(?:=\\)")
+;;                (119 . ".\\(?:ww\\)")
+;;                (123 . ".\\(?:-\\)")
+;;                (124 . ".\\(?:\\(?:|[=|]\\)\\|[=>|]\\)")
+;;                (126 . ".\\(?:~>\\|~~\\|[>=@~-]\\)")
+;;                )
+;;              ))
+;;   (dolist (char-regexp alist)
+;;     (set-char-table-range composition-function-table (car char-regexp)
+;;                           `([,(cdr char-regexp) 0 font-shape-gstring]))))
