@@ -56,8 +56,18 @@
   :ensure t
   :defer t
   :init (highlight-symbol-mode)
+  :bind (("C-." . highlight-symbol-next)
+         ("C-," . highlight-symbol))
   :config
   (setq highlight-symbol-idle-delay 0))
+
+;; (use-package highlight-thing
+;;   :ensure t
+;;   :defer t
+;;   :config
+;;   (setq highlight-thing-delay-seconds 0)
+;;   (setq highlight-thing-case-sensitive-p t))
+
 
 ;;;;;;;;;;
 ;; Functions
@@ -230,7 +240,7 @@ KEY must be given in `kbd' notation."
  indent-tabs-mode nil
  indicate-empty-lines t
  save-place t)
-
+(global-linum-mode)
 (setq
  select-enable-clipboard t
  select-enable-primary t
@@ -316,32 +326,36 @@ KEY must be given in `kbd' notation."
   :bind (("M-TAB" . company-complete)
          ("TAB" . company-indent-or-complete-common)))
 
+(use-package esup
+  :ensure t
+  :defer t)
+
 (use-package flycheck
   :init (global-flycheck-mode)
   :ensure t
   :defer t)
 
-(use-package tabbar
-  :init (tabbar-mode t)
-  :ensure t
-  :defer t
-  :bind (("C-{" . tabbar-backward)
-         ("C-}" . tabbar-forward)
-         ("M-{" . tabbar-backward)
-         ("M-}" . tabbar-forward))
-  )
+;; (use-package tabbar
+;;   :init (tabbar-mode t)
+;;   :ensure t
+;;   :defer t
+;;   :bind (("C-{" . tabbar-backward)
+;;          ("C-}" . tabbar-forward)
+;;          ("M-{" . tabbar-backward)
+;;          ("M-}" . tabbar-forward))
+;;   )
 
-(use-package tabbar-ruler
-  :init (require 'tabbar-ruler)
-  :ensure t
-  :defer t
-  :config
-  (progn
-    (tabbar-mode t)
-    (setq tabbar-ruler-global-tabbar t)
-    (setq tabbar-buffer-groups-function 'tabbar-buffer-groups)
-    (tabbar-ruler-group-by-projectile-project))
-  )
+;; (use-package tabbar-ruler
+;;   :init (require 'tabbar-ruler)
+;;   :ensure t
+;;   :defer t
+;;   :config
+;;   (progn
+;;     (tabbar-mode t)
+;;     (setq tabbar-ruler-global-tabbar t)
+;;     (setq tabbar-buffer-groups-function 'tabbar-buffer-groups)
+;;     (tabbar-ruler-group-by-projectile-project))
+;;   )
 
 (use-package rg
  :ensure t
@@ -350,6 +364,13 @@ KEY must be given in `kbd' notation."
  :bind (("C-F" . rg-project))
  :config 
  ;; (add-hook 'rg-mode-hook 'wgrep-ag-setup)
+ )
+
+(use-package google-this
+ :ensure t
+ :defer t
+ :init (google-this-mode 1)
+ :bind (("C-x C-f" . google-this))
  )
 
 (use-package projectile
