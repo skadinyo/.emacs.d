@@ -52,6 +52,12 @@
   :bind (("C->" . mc/mark-next-like-this)
          ("C-<" . mc/mark-previous-like-this)))
 
+(use-package highlight-symbol
+  :ensure t
+  :defer t
+  :init (highlight-symbol-mode)
+  :config
+  (setq highlight-symbol-idle-delay 0))
 
 ;;;;;;;;;;
 ;; Functions
@@ -271,6 +277,18 @@ KEY must be given in `kbd' notation."
     (add-to-list 'ido-ignore-files "\\.DS_Store"))
   )
 
+(use-package flx-ido
+  :ensure t
+  :defer t
+  :config
+  (progn
+    (ido-mode 1)
+    (ido-everywhere 1)
+    (flx-ido-mode 1)
+    ;; disable ido faces to see flx highlights.
+    (setq ido-enable-flex-matching t)
+    (setq ido-use-faces nil)))
+
 (use-package ido-ubiquitous
   :ensure t
   :defer t
@@ -325,6 +343,15 @@ KEY must be given in `kbd' notation."
     (tabbar-ruler-group-by-projectile-project))
   )
 
+(use-package rg
+ :ensure t
+ :defer t
+ :init (require 'rg)
+ :bind (("C-F" . rg-project))
+ :config 
+ ;; (add-hook 'rg-mode-hook 'wgrep-ag-setup)
+ )
+
 (use-package projectile
   :init (projectile-global-mode)
   :ensure t
@@ -334,8 +361,31 @@ KEY must be given in `kbd' notation."
   :config
   ;; (projectile-project-root)
   ;; (setq projectile-indexing-method 'native)
-  (setq projectile-enable-caching t)
-  (global-set-key (kbd "C-p") (simulate-key-press "C-c p"))
+  (progn
+    (setq projectile-globally-ignored-directories
+      (append '(
+        ".git"
+        ".svn"
+        "out"
+        "repl"
+        "target"
+        "venv"
+        "node_modules"
+        )
+          projectile-globally-ignored-directories))
+    (setq projectile-globally-ignored-files
+      (append '(
+        ".DS_Store"
+        "*.gz"
+        "*.pyc"
+        "*.jar"
+        "*.tar.gz"
+        "*.tgz"
+        "*.zip"
+        )
+          projectile-globally-ignored-files))
+    (setq projectile-enable-caching t)
+    (global-set-key (kbd "C-p") (simulate-key-press "C-c p")))
   )
 
 ;;Too lazy to change kbd for projectile
@@ -371,7 +421,7 @@ KEY must be given in `kbd' notation."
 ;; (global-set-key (kbd "M-1") 'other-window)
 (global-set-key (kbd "<f12>") 'other-window)
 (global-set-key (kbd "C-f") 'isearch-forward)
-(global-set-key (kbd "C-F") 'isearch-forward-regexp)
+;; (global-set-key (kbd "C-F") 'isearch-forward-regexp)
 (global-set-key (kbd "C-v") 'yank)
 (global-set-key (kbd "<home>") 'beginning-of-buffer)
 (global-set-key (kbd "<end>") 'end-of-buffer)
@@ -535,6 +585,7 @@ KEY must be given in `kbd' notation."
   :mode "\\.js$"
   :config
   (progn
+    (subword-mode)
     (setq indent-tabs-mode nil) ;;Use space instead of tab
     (setq js-indent-level 2) ;;space width is 2 (default is 4)
     (setq js2-strict-missing-semi-warning nil)
