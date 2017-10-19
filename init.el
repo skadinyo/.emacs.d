@@ -42,10 +42,6 @@
   :defer t
   :ensure t)
 
-(use-package keyfreq
-  :defer t
-  :ensure t)
-
 (use-package multiple-cursors
   :ensure t
   :defer t
