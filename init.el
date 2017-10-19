@@ -56,9 +56,10 @@
   :ensure t
   :defer t
   :init (highlight-symbol-mode)
-  :bind (("C-." . highlight-symbol-next)
-         ("C-," . highlight-symbol))
+  :bind (("C-." . highlight-symbol-prev)
+         ("C-," . highlight-symbol-next))
   :config
+  (add-hook 'prog-mode-hook 'highlight-symbol-mode)
   (setq highlight-symbol-idle-delay 0))
 
 ;; (use-package highlight-thing
@@ -361,7 +362,7 @@ KEY must be given in `kbd' notation."
  :ensure t
  :defer t
  :init (require 'rg)
- :bind (("C-F" . rg-project))
+ :bind (("C-S-f" . rg-project))
  :config 
  ;; (add-hook 'rg-mode-hook 'wgrep-ag-setup)
  )
