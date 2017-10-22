@@ -58,14 +58,6 @@
   (add-hook 'prog-mode-hook 'highlight-symbol-mode)
   (setq highlight-symbol-idle-delay 0))
 
-;; (use-package highlight-thing
-;;   :ensure t
-;;   :defer t
-;;   :config
-;;   (setq highlight-thing-delay-seconds 0)
-;;   (setq highlight-thing-case-sensitive-p t))
-
-
 ;;;;;;;;;;
 ;; Functions
 ;;;;;;;;;;
@@ -171,10 +163,6 @@ KEY must be given in `kbd' notation."
 (require 'saveplace)
 
 (electric-pair-mode 1)
-;; (use-package powerline
-;;   :defer t
-;;   :ensure t
-;;   :init (powerline-center-theme))
 
 (use-package diff-hl
   :defer t
@@ -247,7 +235,6 @@ KEY must be given in `kbd' notation."
  auto-save-default nil
  ring-bell-function 'ignore
  electric-indent-mode nil
- ;; column-number-mode t
  create-lockfiles nil
  inhibit-startup-message t
 
@@ -279,7 +266,6 @@ KEY must be given in `kbd' notation."
      ido-enable-flex-matching t
      ido-use-filename-at-point nil
      ido-auto-merge-work-directories-length -1
-    ;; ido-max-prospects 10
      ido-use-virtual-buffers t)
     (add-to-list 'ido-ignore-files "\\.DS_Store"))
   )
@@ -292,7 +278,6 @@ KEY must be given in `kbd' notation."
     (ido-mode 1)
     (ido-everywhere 1)
     (flx-ido-mode 1)
-    ;; disable ido faces to see flx highlights.
     (setq ido-enable-flex-matching t)
     (setq ido-use-faces nil)))
 
@@ -300,17 +285,6 @@ KEY must be given in `kbd' notation."
   :ensure t
   :defer t
   :init (ido-ubiquitous-mode 1))
-
-;; I think it make grep slower. I think
-;; (defadvice grep (after delete-grep-header activate) (delete-grep-header))
-;; (defadvice rgrep (after delete-grep-header activate) (delete-grep-header))
-
-;;;;;;;;;;
-;;Global mode
-;;;;;;;;;;
-
-;;Some mode must maybe better to be set up locally
-;;Like this company mode, I don't want to run company mode in org or scratch
 
 (use-package company
   :init (global-company-mode)
@@ -358,10 +332,7 @@ KEY must be given in `kbd' notation."
  :ensure t
  :defer t
  :init (require 'rg)
- :bind (("C-S-f" . rg-project))
- :config 
- ;; (add-hook 'rg-mode-hook 'wgrep-ag-setup)
- )
+ :bind (("C-S-f" . rg-project)))
 
 (use-package google-this
  :ensure t
@@ -374,11 +345,9 @@ KEY must be given in `kbd' notation."
   :init (projectile-global-mode)
   :ensure t
   :defer t
-  ;;Still don't know how to use bind for simulate-key-press function
+  ;;FIXME Still don't know how to use bind for simulate-key-press function
   ;;:bind (("C-p" . (simulate-key-press "C-c p")))
   :config
-  ;; (projectile-project-root)
-  ;; (setq projectile-indexing-method 'native)
   (progn
     (setq projectile-globally-ignored-directories
       (append '(
@@ -405,22 +374,6 @@ KEY must be given in `kbd' notation."
     (setq projectile-enable-caching t)
     (global-set-key (kbd "C-p") (simulate-key-press "C-c p")))
   )
-
-;;Too lazy to change kbd for projectile
-
-;; projectile everywhere!
-
-;;;;;;;;;;
-;; Settings that i still don't know
-;;;;;;;;;;
-
-;; Sets up exec-path-from shell
-;; https://github.com/purcell/exec-path-from-shell
-
-;; (when (memq window-system '(mac ns))
-;;   (exec-path-from-shell-initialize)
-;;   (exec-path-from-shell-copy-envs
-;;    '("PATH")))
 
 ;;;;;;;;;;
 ;; Global Kbds
@@ -489,11 +442,6 @@ KEY must be given in `kbd' notation."
    
     ))
 
-;; javascript
-;; (add-to-list 'auto-mode-alist '("\\.js$" . js-mode))
-;; (add-hook 'js-mode-hook 'subword-mode)
-;; (setq js-indent-level 2)
-
 ;;;;;;;;;;
 ;; Go Mode
 ;;;;;;;;;;
@@ -503,16 +451,13 @@ KEY must be given in `kbd' notation."
   (setq standard-indent 2) 
   (setq indent-tabs-mode nil)
   (add-hook 'before-save-hook 'gofmt-before-save)
-  (add-hook 'go-mode-hook 'subword-mode)
-  ;; (local-set-key (kbd "M-.") 'godef-jump)
-  ;; (local-set-key (kbd "M-,") 'godef-jump-other-window)
-  ;; (local-set-key (kbd "M-p") 'compile) 
-  ;; (local-set-key (kbd "M-P") 'recompile)
-  )
+  (add-hook 'go-mode-hook 'subword-mode))
 
 ;; 
 
-;; Bug, indentation won't work.
+;;TODO Explore go-eldoc
+
+;; FIXME indentation won't work if put in use-package config
 ;; Don't know why.
 (use-package go-mode
   :ensure t
@@ -535,18 +480,17 @@ KEY must be given in `kbd' notation."
   (with-eval-after-load 'company
     (add-to-list 'company-backends 'company-go)))
 
-;;Explore go-eldoc
-
-;;;;;;;;;;
-;; Hook that i still don't know
-;;;;;;;;;;
 
 (add-hook 'prog-mode-hook 'rainbow-delimiters-mode)
+(add-hook 'prog-mode-hook 'hl-line-mode)
+(add-hook 'prog-mode-hook 'diff-hl-mode)
 
 ;;;;;;;;;;
 ;; Paredit
 ;;;;;;;;;;
 
+
+;;TODO Fix this $hit. it's so clutered :(
 (use-package paredit
   :ensure t
   :defer t
@@ -604,40 +548,21 @@ KEY must be given in `kbd' notation."
   :config
   (progn
     (subword-mode)
-    (setq indent-tabs-mode nil) ;;Use space instead of tab
-    (setq js-indent-level 2) ;;space width is 2 (default is 4)
+    (setq indent-tabs-mode nil)(setq js-indent-level 2)
     (setq js2-strict-missing-semi-warning nil)
     ;; (define-key rjsx-mode-map "<" nil)
     ;; (define-key rjsx-mode-map (kbd "C-d") nil)
     ;; (define-key rjsx-mode-map ">" nil)
   ))
 
-;; (use-package js2-mode
-;;   :defer 1
-;;   :config
-;;   (progn
-;;     (add-to-list 'interpreter-mode-alist '("node" . js2-mode))
+(use-package json-reformat
+  :ensure t
+  :defer t)
 
-;;     (add-hook 'js2-mode-hook #'setup-tide-mode)
-;;     ;(add-hook 'js2-mode-hook #'tern-mode)
+(when (window-system)
+  (set-default-font "Fira Code Retina"))
 
-;;     (setq js2-basic-offset 2
-;;           js2-bounce-indent-p t
-;;           js2-strict-missing-semi-warning nil
-;;           js2-concat-multiline-strings nil
-;;           js2-include-node-externs t
-;;           js2-skip-preprocessor-directives t
-;;           js2-strict-inconsistent-return-warning nil)))
-
-;; (defadvice js-jsx-indent-line (after js-jsx-indent-line-after-hack activate)
-;;   "Workaround sgml-mode and follow airbnb component style."
-;;   (save-excursion
-;;     (beginning-of-line)
-;;     (if (looking-at-p "^ +\/?> *$")
-;;         (delete-char sgml-basic-offset))))
-
-;; (when (window-system)
-;;   (set-default-font "Fira Code Retina"))
+;;TODO Investigate ligature. It's slow AF
 ;; (let ((alist '((33 . ".\\(?:\\(?:==\\|!!\\)\\|[!=]\\)")
 ;;                (35 . ".\\(?:###\\|##\\|_(\\|[#(?[_{]\\)")
 ;;                (36 . ".\\(?:>\\)")
