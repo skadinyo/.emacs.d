@@ -52,8 +52,8 @@
   :ensure t
   :defer t
   :init (highlight-symbol-mode)
-  :bind (("C-." . highlight-symbol-prev)
-         ("C-," . highlight-symbol-next))
+  :bind (("C-." . highlight-symbol-next)
+         ("C-," . highlight-symbol-prev))
   :config
   (add-hook 'prog-mode-hook 'highlight-symbol-mode)
   (setq highlight-symbol-idle-delay 0))
