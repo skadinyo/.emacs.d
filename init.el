@@ -42,6 +42,11 @@
   :defer t
   :ensure t)
 
+;; (use-package multi-term
+;;   :defer t
+;;   :ensure t
+;;   )
+
 (use-package multiple-cursors
   :ensure t
   :defer t
@@ -239,10 +244,11 @@ KEY must be given in `kbd' notation."
  inhibit-startup-message t
 
  uniquify-buffer-name-style 'forward
- scroll-conservatively 10000
+ scroll-conservatively 1000000
  scroll-preserve-screen-position t
  )
 
+;; TODO explore!!
 (use-package smex
   :ensure t
   :defer t
@@ -254,6 +260,7 @@ KEY must be given in `kbd' notation."
      smex-save-file (concat user-emacs-directory ".smex-items")
      save-place-file (concat user-emacs-directory "places"))))
 
+;; TODO explore!!
 (use-package ido
   :ensure t
   :defer t
@@ -270,6 +277,7 @@ KEY must be given in `kbd' notation."
     (add-to-list 'ido-ignore-files "\\.DS_Store"))
   )
 
+;; TODO explore!!
 (use-package flx-ido
   :ensure t
   :defer t
@@ -281,6 +289,7 @@ KEY must be given in `kbd' notation."
     (setq ido-enable-flex-matching t)
     (setq ido-use-faces nil)))
 
+;; TODO explore!!
 (use-package ido-ubiquitous
   :ensure t
   :defer t
