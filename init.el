@@ -159,10 +159,10 @@
 (electric-pair-mode 1)
 
 ;; TODO make diff-hl only in go, js, elisp project!
-(use-package diff-hl
-  :defer t
-  :ensure t
-  :init (diff-hl-mode))
+;; (use-package diff-hl
+;;   :defer t
+;;   :ensure t
+;;   :init (diff-hl-mode))
 
 (use-package hl-todo
   :defer t
@@ -517,6 +517,34 @@
 ;; js-mode
 ;;;;;;;;;;
 
+;; prettier-js-command is the prettier command
+;; prettier-js-args are the args passed to the prettier command
+;; prettier-js-show-errors customizes where to display the error output (buffer, echo or nil)
+;; prettier-js-width-mode customizes the width when formatting buffer contents (window, fill or nil)
+(use-package prettier-js
+  :ensure t
+  :defer t
+  :config
+  (progn
+    (setq prettier-js-args '("--tab-width" "2"
+                             "--use-tabs" "false"
+                             ;; "--trailing-comma" "all"
+                             "--single-quote" "true"
+                             "--print-width" "100"
+                             "--semi" "true"))
+    (add-hook 'js2-mode-hook 'prettier-js-mode)))
+
+(use-package json-mode
+  :ensure t
+  :defer t
+  :mode "\\.json$")
+
+
+(use-package add-node-modules-path
+  :ensure t
+  :defer t
+  )
+
 (use-package rjsx-mode
   :ensure t
   :defer t
@@ -528,6 +556,8 @@
     (subword-mode)
     (setq indent-tabs-mode nil)(setq js-indent-level 2)
     (setq js2-strict-missing-semi-warning nil)
+
+    
     ;; (define-key rjsx-mode-map "<" nil)
     ;; (define-key rjsx-mode-map (kbd "C-d") nil)
     ;; (define-key rjsx-mode-map ">" nil)
@@ -539,3 +569,17 @@
 
 (when (window-system)
   (set-default-font "Fira Code Retina"))
+(custom-set-variables
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(package-selected-packages
+   (quote
+    (add-node-modules-path web-mode use-package undo-tree smex rjsx-mode rg rainbow-delimiters prettier-js paredit nlinum multiple-cursors material-theme magit keyfreq json-mode ido-ubiquitous hl-todo highlight-symbol golint go-guru flycheck flx-ido expand-region exec-path-from-shell esup diff-hl company-go clojure-mode-extra-font-locking cider))))
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ )
