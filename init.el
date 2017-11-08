@@ -1,3 +1,5 @@
+(x-focus-frame nil)
+
 (require 'package)
 (add-to-list 'package-archives
   '("melpa" . "http://melpa.milkbox.net/packages/") t)
@@ -25,6 +27,7 @@
 (when (not package-archive-contents)
   (package-refresh-contents))
 
+
 (if (eq system-type 'darwin)
     (add-to-list 'my-packages 'exec-path-from-shell))
 
@@ -42,6 +45,7 @@
   :defer t
   :ensure t)
 
+;; TODO explore!!!
 ;; (use-package multi-term
 ;;   :defer t
 ;;   :ensure t
@@ -66,19 +70,6 @@
 ;;;;;;;;;;
 ;; Functions
 ;;;;;;;;;;
-
-(defun simulate-key-press (key)
-  "Pretend that KEY was pressed.
-KEY must be given in `kbd' notation."
-  `(lambda () (interactive)
-     (setq prefix-arg current-prefix-arg)
-     (setq unread-command-events (listify-key-sequence (read-kbd-macro ,key)))))
-
-(defun delete-grep-header ()
-  (save-excursion
-    (with-current-buffer grep-last-buffer
-      (goto-line 5)
-      (narrow-to-region (point) (point-max)))))
 
 (defun intellij-kill-current-buffer ()
   (interactive)
@@ -152,6 +143,7 @@ KEY must be given in `kbd' notation."
   "Comment or uncomment current line."
   (interactive)
   (comment-or-uncomment-region (line-beginning-position) (line-end-position)))
+
 (global-set-key (kbd "C-;") 'toggle-comment-on-line)
 
 (defun paredit-kill-region-or-backward-delete ()
@@ -160,24 +152,25 @@ KEY must be given in `kbd' notation."
       (kill-region (region-beginning) (region-end))
     (paredit-backward-delete)))
 
-;;;;;;;;;;
-;; Better default
-;;;;;;;;;;
 (require 'uniquify)
 
 (require 'saveplace)
 
 (electric-pair-mode 1)
 
+;; TODO make diff-hl only in go, js, elisp project!
 (use-package diff-hl
   :defer t
   :ensure t
-  :init (diff-hl-mode)
-  )
+  :init (diff-hl-mode))
+
+(use-package hl-todo
+  :defer t
+  :ensure t
+  :init (global-hl-todo-mode))
 
 (load-theme 'material t)
 (blink-cursor-mode 0)
-;; (global-linum-mode)
 (show-paren-mode 1)
 (toggle-indicate-empty-lines)
 (when (fboundp 'scroll-bar-mode)
@@ -214,6 +207,13 @@ KEY must be given in `kbd' notation."
          ("C-S-z" . undo-tree-redo)
          ("M-Z" . undo-tree-redo)))
 
+;; I think nlinum mode is more stable.
+(use-package nlinum
+  :defer t
+  :ensure t
+  :init (global-nlinum-mode))
+
+;; TODO explore more configuration for this powerful package
 (use-package expand-region
   :defer t
   :ensure t
@@ -225,18 +225,17 @@ KEY must be given in `kbd' notation."
   (exec-path-from-shell-copy-envs
    '("PATH")))
 
+;; TODO tidy up this setq
 (setq-default 
  frame-title-format "%b (%f)"
  indent-tabs-mode nil
  indicate-empty-lines t
  save-place t)
-(global-linum-mode)
 (setq
  select-enable-clipboard t
  select-enable-primary t
  save-interprogram-paste-before-kill t
  
- ;; backup-directory-alist `(("." . ,(concat user-emacs-directory "backups")))
  auto-save-default nil
  ring-bell-function 'ignore
  electric-indent-mode nil
@@ -306,15 +305,18 @@ KEY must be given in `kbd' notation."
   :bind (("M-TAB" . company-complete)
          ("TAB" . company-indent-or-complete-common)))
 
+;; Benchmarking
 (use-package esup
   :ensure t
   :defer t)
 
+;; TODO make flycheck only in go, js, elisp project!
 (use-package flycheck
   :init (global-flycheck-mode)
   :ensure t
   :defer t)
 
+;; Turns out i can survive without tabbar!!!
 ;; (use-package tabbar
 ;;   :init (tabbar-mode t)
 ;;   :ensure t
@@ -337,52 +339,12 @@ KEY must be given in `kbd' notation."
 ;;     (tabbar-ruler-group-by-projectile-project))
 ;;   )
 
+;; Crazy fast grep alternative
 (use-package rg
  :ensure t
  :defer t
  :init (require 'rg)
  :bind (("C-S-f" . rg-project)))
-
-(use-package google-this
- :ensure t
- :defer t
- :init (google-this-mode 1)
- :bind (("C-x C-f" . google-this))
- )
-
-(use-package projectile
-  :init (projectile-global-mode)
-  :ensure t
-  :defer t
-  ;;FIXME Still don't know how to use bind for simulate-key-press function
-  ;;:bind (("C-p" . (simulate-key-press "C-c p")))
-  :config
-  (progn
-    (setq projectile-globally-ignored-directories
-      (append '(
-        ".git"
-        ".svn"
-        "out"
-        "repl"
-        "target"
-        "venv"
-        "node_modules"
-        )
-          projectile-globally-ignored-directories))
-    (setq projectile-globally-ignored-files
-      (append '(
-        ".DS_Store"
-        "*.gz"
-        "*.pyc"
-        "*.jar"
-        "*.tar.gz"
-        "*.tgz"
-        "*.zip"
-        )
-          projectile-globally-ignored-files))
-    (setq projectile-enable-caching t)
-    (global-set-key (kbd "C-p") (simulate-key-press "C-c p")))
-  )
 
 ;;;;;;;;;;
 ;; Global Kbds
@@ -475,7 +437,10 @@ KEY must be given in `kbd' notation."
   :bind (("M-." . godef-jump)
          ("M-," . godef-jump-other-window)
          ("M-p" . compile) 
-         ("M-P" . recompile))
+         ("M-P" . recompile)
+         ("<C-right>" . move-end-of-line)
+         ("<C-left>" . move-beginning-of-line)
+         )
   :config
   (add-hook 'go-mode-hook 'my-go-mode-hook)
   (add-hook 'before-save-hook 'gofmt-before-save)
@@ -544,6 +509,8 @@ KEY must be given in `kbd' notation."
 
     ))
 
+
+
 ;; (find-file "~/Dropbox/documents/worknote.org")
 
 ;;;;;;;;;;
@@ -554,6 +521,8 @@ KEY must be given in `kbd' notation."
   :ensure t
   :defer t
   :mode "\\.js$"
+  :bind (("<C-right>" . move-end-of-line)
+         ("<C-left>" . move-beginning-of-line))
   :config
   (progn
     (subword-mode)
@@ -570,34 +539,3 @@ KEY must be given in `kbd' notation."
 
 (when (window-system)
   (set-default-font "Fira Code Retina"))
-
-;;TODO Investigate ligature. It's slow AF
-;; (let ((alist '((33 . ".\\(?:\\(?:==\\|!!\\)\\|[!=]\\)")
-;;                (35 . ".\\(?:###\\|##\\|_(\\|[#(?[_{]\\)")
-;;                (36 . ".\\(?:>\\)")
-;;                (37 . ".\\(?:\\(?:%%\\)\\|%\\)")
-;;                (38 . ".\\(?:\\(?:&&\\)\\|&\\)")
-;;                (42 . ".\\(?:\\(?:\\*\\*/\\)\\|\\(?:\\*[*/]\\)\\|[*/>]\\)")
-;;                (43 . ".\\(?:\\(?:\\+\\+\\)\\|[+>]\\)")
-;;                (45 . ".\\(?:\\(?:-[>-]\\|<<\\|>>\\)\\|[<>}~-]\\)")
-;;                (46 . ".\\(?:\\(?:\\.[.<]\\)\\|[.=-]\\)")
-;;                (47 . ".\\(?:\\(?:\\*\\*\\|//\\|==\\)\\|[*/=>]\\)")
-;;                (48 . ".\\(?:x[a-zA-Z]\\)")
-;;                (58 . ".\\(?:::\\|[:=]\\)")
-;;                (59 . ".\\(?:;;\\|;\\)")
-;;                (60 . ".\\(?:\\(?:!--\\)\\|\\(?:~~\\|->\\|\\$>\\|\\*>\\|\\+>\\|--\\|<[<=-]\\|=[<=>]\\||>\\)\\|[*$+~/<=>|-]\\)")
-;;                (61 . ".\\(?:\\(?:/=\\|:=\\|<<\\|=[=>]\\|>>\\)\\|[<=>~]\\)")
-;;                (62 . ".\\(?:\\(?:=>\\|>[=>-]\\)\\|[=>-]\\)")
-;;                (63 . ".\\(?:\\(\\?\\?\\)\\|[:=?]\\)")
-;;                (91 . ".\\(?:]\\)")
-;;                (92 . ".\\(?:\\(?:\\\\\\\\\\)\\|\\\\\\)")
-;;                (94 . ".\\(?:=\\)")
-;;                (119 . ".\\(?:ww\\)")
-;;                (123 . ".\\(?:-\\)")
-;;                (124 . ".\\(?:\\(?:|[=|]\\)\\|[=>|]\\)")
-;;                (126 . ".\\(?:~>\\|~~\\|[>=@~-]\\)")
-;;                )
-;;              ))
-;;   (dolist (char-regexp alist)
-;;     (set-char-table-range composition-function-table (car char-regexp)
-;;                           `([,(cdr char-regexp) 0 font-shape-gstring]))))
