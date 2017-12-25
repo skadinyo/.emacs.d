@@ -8,19 +8,9 @@
       "http://marmalade-repo.org/packages/"))
 
 (defvar my-packages
-  '(paredit
-    clojure-mode
-    clojure-mode-extra-font-locking
-    cider
-    rainbow-delimiters
-    magit
-    material-theme
-    
-    go-mode
-    go-guru
-    golint
-    
-    rjsx-mode))
+  'paredit
+  clojure-mode
+  clojure-mode-extra-font-locking)
 
 (package-initialize)
 
@@ -42,6 +32,10 @@
 (require 'use-package)
 
 (use-package esup
+  :defer t
+  :ensure t)
+
+(use-package nginx-mode
   :defer t
   :ensure t)
 
@@ -241,11 +235,13 @@
  electric-indent-mode nil
  create-lockfiles nil
  inhibit-startup-message t
-
+ 
  uniquify-buffer-name-style 'forward
- scroll-conservatively 1000000
+ scroll-conservatively 10000
  scroll-preserve-screen-position t
  )
+
+;; (setq bidi-display-reordering nil)
 
 ;; TODO explore!!
 (use-package smex
@@ -554,7 +550,8 @@
   :config
   (progn
     (subword-mode)
-    (setq indent-tabs-mode nil)(setq js-indent-level 2)
+    (setq indent-tabs-mode nil)
+    (setq js-indent-level 2)
     (setq js2-strict-missing-semi-warning nil)
 
     
@@ -567,19 +564,7 @@
   :ensure t
   :defer t)
 
-(when (window-system)
-  (set-default-font "Fira Code Retina"))
-(custom-set-variables
- ;; custom-set-variables was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(package-selected-packages
-   (quote
-    (add-node-modules-path web-mode use-package undo-tree smex rjsx-mode rg rainbow-delimiters prettier-js paredit nlinum multiple-cursors material-theme magit keyfreq json-mode ido-ubiquitous hl-todo highlight-symbol golint go-guru flycheck flx-ido expand-region exec-path-from-shell esup diff-hl company-go clojure-mode-extra-font-locking cider))))
-(custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- )
+(defun insert-current-date () 
+  (interactive)
+  (insert (shell-command-to-string "echo -n $(date '+%d-%m-%Y %X')")))
+
