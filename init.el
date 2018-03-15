@@ -2,15 +2,15 @@
 
 (require 'package)
 (add-to-list 'package-archives
-  '("melpa" . "http://melpa.milkbox.net/packages/") t)
+             '("melpa" . "http://melpa.milkbox.net/packages/") t)
 (add-to-list 'package-archives
-    '("marmalade" .
-      "http://marmalade-repo.org/packages/"))
+             '("marmalade" .
+               "http://marmalade-repo.org/packages/"))
 
 (defvar my-packages
-  'paredit
+  '(paredit
   clojure-mode
-  clojure-mode-extra-font-locking)
+  clojure-mode-extra-font-locking))
 
 (package-initialize)
 
@@ -73,6 +73,7 @@
   (interactive)
   (cider-insert-last-sexp-in-repl -1)
   (cider-switch-to-last-clojure-buffer))
+(global-set-key (kbd "C-S-p") 'intellij-send-top-form-to-repl)
 
 (defun intellij-reformat-code ()
   (interactive)
@@ -153,10 +154,10 @@
 (electric-pair-mode 1)
 
 ;; TODO make diff-hl only in go, js, elisp project!
-;; (use-package diff-hl
-;;   :defer t
-;;   :ensure t
-;;   :init (diff-hl-mode))
+(use-package diff-hl
+  :defer t
+  :ensure t
+  :init (diff-hl-mode))
 
 (use-package hl-todo
   :defer t
@@ -178,8 +179,8 @@
   :defer t
   :ensure t
   :init (keyfreq-mode 1)
-  :config 
-  (progn 
+  :config
+  (progn
     (keyfreq-autosave-mode 1)))
 
 (use-package recentf
@@ -190,7 +191,7 @@
   (progn 
     (setq 
      recentf-save-file (concat user-emacs-directory ".recentf")
-     recentf-max-menu-items 50)))
+     recentf-max-menu-items 5)))
 
 (use-package undo-tree
   :defer t
@@ -202,10 +203,18 @@
          ("M-Z" . undo-tree-redo)))
 
 ;; I think nlinum mode is more stable.
-(use-package nlinum
+;; (use-package nlinum
+;;   :defer t
+;;   :ensure t
+;;   :init (global-nlinum-mode))
+
+(use-package linum-relative
   :defer t
   :ensure t
-  :init (global-nlinum-mode))
+  :config
+  (progn
+    (linum-relative-mode)
+    (setq linum-relative-backend 'display-line-numbers-mode)))
 
 ;; TODO explore more configuration for this powerful package
 (use-package expand-region
@@ -220,7 +229,7 @@
    '("PATH")))
 
 ;; TODO tidy up this setq
-(setq-default 
+(setq-default
  frame-title-format "%b (%f)"
  indent-tabs-mode nil
  indicate-empty-lines t
@@ -239,9 +248,9 @@
  uniquify-buffer-name-style 'forward
  scroll-conservatively 10000
  scroll-preserve-screen-position t
+ truncate-lines t
  )
-
-;; (setq bidi-display-reordering nil)
+(setq message-log-max 100)
 
 ;; TODO explore!!
 (use-package smex
@@ -310,30 +319,10 @@
 (use-package flycheck
   :init (global-flycheck-mode)
   :ensure t
-  :defer t)
-
-;; Turns out i can survive without tabbar!!!
-;; (use-package tabbar
-;;   :init (tabbar-mode t)
-;;   :ensure t
-;;   :defer t
-;;   :bind (("C-{" . tabbar-backward)
-;;          ("C-}" . tabbar-forward)
-;;          ("M-{" . tabbar-backward)
-;;          ("M-}" . tabbar-forward))
-;;   )
-
-;; (use-package tabbar-ruler
-;;   :init (require 'tabbar-ruler)
-;;   :ensure t
-;;   :defer t
-;;   :config
-;;   (progn
-;;     (tabbar-mode t)
-;;     (setq tabbar-ruler-global-tabbar t)
-;;     (setq tabbar-buffer-groups-function 'tabbar-buffer-groups)
-;;     (tabbar-ruler-group-by-projectile-project))
-;;   )
+  :defer t
+  :config
+  (progn
+    (setq flycheck-highlighting-mode 'lines)))
 
 ;; Crazy fast grep alternative
 (use-package rg
@@ -460,7 +449,7 @@
 ;;;;;;;;;;
 
 
-;;TODO Fix this $hit. it's so clutered :(
+;; TODO Fix this $hit. it's so clutered :(
 (use-package paredit
   :ensure t
   :defer t
@@ -490,20 +479,20 @@
 ;; Org-mode
 ;;;;;;;;;;
 
-(use-package org
-  :ensure t
-  :defer t
-  :mode "\\.org$"
-  :bind (("\C-cl" . org-store-link)
-         ("\C-ca" . org-agenda))
-  :config
-  (progn
-    (setq org-log-done t)
-    (setq org-support-shift-select t)
-    (setq org-todo-keywords
-          '((sequence "TODO" "IN-PROGRESS" "WAITING" "DONE")))
+;; (use-package org
+;;   :ensure t
+;;   :defer t
+;;   :mode "\\.org$"
+;;   :bind (("\C-cl" . org-store-link)
+;;          ("\C-ca" . org-agenda))
+;;   :config
+;;   (progns
+;;     (setq org-log-done t)
+;;     (setq org-support-shift-select t)
+;;     (setq org-todo-keywords
+;;           '((sequence "TODO" "IN-PROGRESS" "WAITING" "DONE")))
 
-    ))
+;;     ))
 
 
 
@@ -530,17 +519,22 @@
                              "--semi" "true"))
     (add-hook 'js2-mode-hook 'prettier-js-mode)))
 
-(use-package json-mode
-  :ensure t
-  :defer t
-  :mode "\\.json$")
-
-
+;;Not sure what for :(
 (use-package add-node-modules-path
   :ensure t
   :defer t
   )
 
+(use-package nyan-mode
+  :if window-system
+  :ensure t
+  :defer t
+  :config
+  (nyan-mode)
+  (nyan-start-animation)
+  (nyan-toggle-wavy-trail))
+
+;; Slow as f*ck when opening new file
 (use-package rjsx-mode
   :ensure t
   :defer t
@@ -558,13 +552,56 @@
     ;; (define-key rjsx-mode-map "<" nil)
     ;; (define-key rjsx-mode-map (kbd "C-d") nil)
     ;; (define-key rjsx-mode-map ">" nil)
+
+    (defadvice js-jsx-indent-line (after js-jsx-indent-line-after-hack activate)
+      "Workaround sgml-mode and follow airbnb component style."
+      (save-excursion
+        (beginning-of-line)
+        (if (looking-at-p "^ +\/?> *$")
+            (delete-char sgml-basic-offset))))
   ))
 
-(use-package json-reformat
+(setq backup-directory-alist '(("." . "~/.emacs.d/backup"))
+  backup-by-copying t    ; Don't delink hardlinks
+  version-control t      ; Use version numbers on backups
+  delete-old-versions t  ; Automatically delete excess backups
+  kept-new-versions 20   ; how many of the newest versions to keep
+  kept-old-versions 5    ; and how many of the old
+  )
+
+
+(use-package mode-icons
+  :defer t
   :ensure t
-  :defer t)
+  :init 
+  (mode-icons-mode)
+  )
 
-(defun insert-current-date () 
-  (interactive)
-  (insert (shell-command-to-string "echo -n $(date '+%d-%m-%Y %X')")))
+(use-package ace-jump-mode
+  :defer t
+  :ensure t
+  :config
+  (progn
+    (global-set-key (kbd "C-SPC") 'ace-jump-mode)
+    ))
 
+;; dumbjump
+
+(custom-set-variables
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(custom-safe-themes
+   (quote
+    ("98cc377af705c0f2133bb6d340bf0becd08944a588804ee655809da5d8140de6" "f0c98535db38af17e81e491a77251e198241346306a90c25eb982b57e687d7c0" default)))
+ '(nyan-mode t)
+ '(package-selected-packages
+   (quote
+    (ace-jump-mode mode-icons google-this linum-relative monokai-theme htmlize highlight-indentation nyan-mode yaml-mode web-mode visual-regexp use-package undo-tree so-long smex rjsx-mode rg rainbow-delimiters prettier-js paredit nlinum nginx-mode multiple-cursors material-theme magit keyfreq json-mode itail ido-ubiquitous hl-todo highlight-symbol golint go-guru git-link flycheck flx-ido expand-region exec-path-from-shell esup diff-hl company-go clojure-mode-extra-font-locking cider add-node-modules-path))))
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ )
