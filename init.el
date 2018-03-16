@@ -1,29 +1,22 @@
+(x-focus-frame nil)
+
 (require 'package)
 (add-to-list 'package-archives
-  '("melpa" . "http://melpa.milkbox.net/packages/") t)
+             '("melpa" . "http://melpa.milkbox.net/packages/") t)
 (add-to-list 'package-archives
-    '("marmalade" .
-      "http://marmalade-repo.org/packages/"))
+             '("marmalade" .
+               "http://marmalade-repo.org/packages/"))
 
 (defvar my-packages
   '(paredit
-    clojure-mode
-    clojure-mode-extra-font-locking
-    cider
-    rainbow-delimiters
-    magit
-    material-theme
-    
-    go-mode
-    go-guru
-    golint
-    
-    rjsx-mode))
+  clojure-mode
+  clojure-mode-extra-font-locking))
 
 (package-initialize)
 
 (when (not package-archive-contents)
   (package-refresh-contents))
+
 
 (if (eq system-type 'darwin)
     (add-to-list 'my-packages 'exec-path-from-shell))
@@ -42,6 +35,16 @@
   :defer t
   :ensure t)
 
+(use-package nginx-mode
+  :defer t
+  :ensure t)
+
+;; TODO explore!!!
+;; (use-package multi-term
+;;   :defer t
+;;   :ensure t
+;;   )
+
 (use-package multiple-cursors
   :ensure t
   :defer t
@@ -52,36 +55,15 @@
   :ensure t
   :defer t
   :init (highlight-symbol-mode)
-  :bind (("C-." . highlight-symbol-prev)
-         ("C-," . highlight-symbol-next))
+  :bind (("C-." . highlight-symbol-next)
+         ("C-," . highlight-symbol-prev))
   :config
   (add-hook 'prog-mode-hook 'highlight-symbol-mode)
   (setq highlight-symbol-idle-delay 0))
 
-;; (use-package highlight-thing
-;;   :ensure t
-;;   :defer t
-;;   :config
-;;   (setq highlight-thing-delay-seconds 0)
-;;   (setq highlight-thing-case-sensitive-p t))
-
-
 ;;;;;;;;;;
 ;; Functions
 ;;;;;;;;;;
-
-(defun simulate-key-press (key)
-  "Pretend that KEY was pressed.
-KEY must be given in `kbd' notation."
-  `(lambda () (interactive)
-     (setq prefix-arg current-prefix-arg)
-     (setq unread-command-events (listify-key-sequence (read-kbd-macro ,key)))))
-
-(defun delete-grep-header ()
-  (save-excursion
-    (with-current-buffer grep-last-buffer
-      (goto-line 5)
-      (narrow-to-region (point) (point-max)))))
 
 (defun intellij-kill-current-buffer ()
   (interactive)
@@ -91,6 +73,7 @@ KEY must be given in `kbd' notation."
   (interactive)
   (cider-insert-last-sexp-in-repl -1)
   (cider-switch-to-last-clojure-buffer))
+(global-set-key (kbd "C-S-p") 'intellij-send-top-form-to-repl)
 
 (defun intellij-reformat-code ()
   (interactive)
@@ -155,6 +138,7 @@ KEY must be given in `kbd' notation."
   "Comment or uncomment current line."
   (interactive)
   (comment-or-uncomment-region (line-beginning-position) (line-end-position)))
+
 (global-set-key (kbd "C-;") 'toggle-comment-on-line)
 
 (defun paredit-kill-region-or-backward-delete ()
@@ -163,28 +147,25 @@ KEY must be given in `kbd' notation."
       (kill-region (region-beginning) (region-end))
     (paredit-backward-delete)))
 
-;;;;;;;;;;
-;; Better default
-;;;;;;;;;;
 (require 'uniquify)
 
 (require 'saveplace)
 
 (electric-pair-mode 1)
-;; (use-package powerline
-;;   :defer t
-;;   :ensure t
-;;   :init (powerline-center-theme))
 
+;; TODO make diff-hl only in go, js, elisp project!
 (use-package diff-hl
   :defer t
   :ensure t
-  :init (diff-hl-mode)
-  )
+  :init (diff-hl-mode))
+
+(use-package hl-todo
+  :defer t
+  :ensure t
+  :init (global-hl-todo-mode))
 
 (load-theme 'material t)
 (blink-cursor-mode 0)
-;; (global-linum-mode)
 (show-paren-mode 1)
 (toggle-indicate-empty-lines)
 (when (fboundp 'scroll-bar-mode)
@@ -198,8 +179,8 @@ KEY must be given in `kbd' notation."
   :defer t
   :ensure t
   :init (keyfreq-mode 1)
-  :config 
-  (progn 
+  :config
+  (progn
     (keyfreq-autosave-mode 1)))
 
 (use-package recentf
@@ -210,7 +191,7 @@ KEY must be given in `kbd' notation."
   (progn 
     (setq 
      recentf-save-file (concat user-emacs-directory ".recentf")
-     recentf-max-menu-items 50)))
+     recentf-max-menu-items 5)))
 
 (use-package undo-tree
   :defer t
@@ -221,6 +202,15 @@ KEY must be given in `kbd' notation."
          ("C-S-z" . undo-tree-redo)
          ("M-Z" . undo-tree-redo)))
 
+(use-package linum-relative
+  :defer t
+  :ensure t
+  :config
+  (progn
+    (linum-relative-mode)
+    (setq linum-relative-backend 'display-line-numbers-mode)))
+
+;; TODO explore more configuration for this powerful package
 (use-package expand-region
   :defer t
   :ensure t
@@ -232,30 +222,31 @@ KEY must be given in `kbd' notation."
   (exec-path-from-shell-copy-envs
    '("PATH")))
 
-(setq-default 
+;; TODO tidy up this setq
+(setq-default
  frame-title-format "%b (%f)"
  indent-tabs-mode nil
  indicate-empty-lines t
  save-place t)
-(global-linum-mode)
 (setq
  select-enable-clipboard t
  select-enable-primary t
  save-interprogram-paste-before-kill t
  
- ;; backup-directory-alist `(("." . ,(concat user-emacs-directory "backups")))
  auto-save-default nil
  ring-bell-function 'ignore
  electric-indent-mode nil
- ;; column-number-mode t
  create-lockfiles nil
  inhibit-startup-message t
-
+ 
  uniquify-buffer-name-style 'forward
  scroll-conservatively 10000
  scroll-preserve-screen-position t
+ truncate-lines t
  )
+(setq message-log-max 100)
 
+;; TODO explore!!
 (use-package smex
   :ensure t
   :defer t
@@ -267,6 +258,7 @@ KEY must be given in `kbd' notation."
      smex-save-file (concat user-emacs-directory ".smex-items")
      save-place-file (concat user-emacs-directory "places"))))
 
+;; TODO explore!!
 (use-package ido
   :ensure t
   :defer t
@@ -279,11 +271,11 @@ KEY must be given in `kbd' notation."
      ido-enable-flex-matching t
      ido-use-filename-at-point nil
      ido-auto-merge-work-directories-length -1
-    ;; ido-max-prospects 10
      ido-use-virtual-buffers t)
     (add-to-list 'ido-ignore-files "\\.DS_Store"))
   )
 
+;; TODO explore!!
 (use-package flx-ido
   :ensure t
   :defer t
@@ -292,25 +284,14 @@ KEY must be given in `kbd' notation."
     (ido-mode 1)
     (ido-everywhere 1)
     (flx-ido-mode 1)
-    ;; disable ido faces to see flx highlights.
     (setq ido-enable-flex-matching t)
     (setq ido-use-faces nil)))
 
+;; TODO explore!!
 (use-package ido-ubiquitous
   :ensure t
   :defer t
   :init (ido-ubiquitous-mode 1))
-
-;; I think it make grep slower. I think
-;; (defadvice grep (after delete-grep-header activate) (delete-grep-header))
-;; (defadvice rgrep (after delete-grep-header activate) (delete-grep-header))
-
-;;;;;;;;;;
-;;Global mode
-;;;;;;;;;;
-
-;;Some mode must maybe better to be set up locally
-;;Like this company mode, I don't want to run company mode in org or scratch
 
 (use-package company
   :init (global-company-mode)
@@ -323,104 +304,26 @@ KEY must be given in `kbd' notation."
   :bind (("M-TAB" . company-complete)
          ("TAB" . company-indent-or-complete-common)))
 
+;; Benchmarking
 (use-package esup
   :ensure t
   :defer t)
 
+;; TODO make flycheck only in go, js, elisp project!
 (use-package flycheck
   :init (global-flycheck-mode)
   :ensure t
-  :defer t)
+  :defer t
+  :config
+  (progn
+    (setq flycheck-highlighting-mode 'lines)))
 
-;; (use-package tabbar
-;;   :init (tabbar-mode t)
-;;   :ensure t
-;;   :defer t
-;;   :bind (("C-{" . tabbar-backward)
-;;          ("C-}" . tabbar-forward)
-;;          ("M-{" . tabbar-backward)
-;;          ("M-}" . tabbar-forward))
-;;   )
-
-;; (use-package tabbar-ruler
-;;   :init (require 'tabbar-ruler)
-;;   :ensure t
-;;   :defer t
-;;   :config
-;;   (progn
-;;     (tabbar-mode t)
-;;     (setq tabbar-ruler-global-tabbar t)
-;;     (setq tabbar-buffer-groups-function 'tabbar-buffer-groups)
-;;     (tabbar-ruler-group-by-projectile-project))
-;;   )
-
+;; Crazy fast grep alternative
 (use-package rg
  :ensure t
  :defer t
  :init (require 'rg)
- :bind (("C-S-f" . rg-project))
- :config 
- ;; (add-hook 'rg-mode-hook 'wgrep-ag-setup)
- )
-
-(use-package google-this
- :ensure t
- :defer t
- :init (google-this-mode 1)
- :bind (("C-x C-f" . google-this))
- )
-
-(use-package projectile
-  :init (projectile-global-mode)
-  :ensure t
-  :defer t
-  ;;Still don't know how to use bind for simulate-key-press function
-  ;;:bind (("C-p" . (simulate-key-press "C-c p")))
-  :config
-  ;; (projectile-project-root)
-  ;; (setq projectile-indexing-method 'native)
-  (progn
-    (setq projectile-globally-ignored-directories
-      (append '(
-        ".git"
-        ".svn"
-        "out"
-        "repl"
-        "target"
-        "venv"
-        "node_modules"
-        )
-          projectile-globally-ignored-directories))
-    (setq projectile-globally-ignored-files
-      (append '(
-        ".DS_Store"
-        "*.gz"
-        "*.pyc"
-        "*.jar"
-        "*.tar.gz"
-        "*.tgz"
-        "*.zip"
-        )
-          projectile-globally-ignored-files))
-    (setq projectile-enable-caching t)
-    (global-set-key (kbd "C-p") (simulate-key-press "C-c p")))
-  )
-
-;;Too lazy to change kbd for projectile
-
-;; projectile everywhere!
-
-;;;;;;;;;;
-;; Settings that i still don't know
-;;;;;;;;;;
-
-;; Sets up exec-path-from shell
-;; https://github.com/purcell/exec-path-from-shell
-
-;; (when (memq window-system '(mac ns))
-;;   (exec-path-from-shell-initialize)
-;;   (exec-path-from-shell-copy-envs
-;;    '("PATH")))
+ :bind (("C-S-f" . rg-project)))
 
 ;;;;;;;;;;
 ;; Global Kbds
@@ -444,7 +347,7 @@ KEY must be given in `kbd' notation."
 (global-set-key (kbd "<home>") 'beginning-of-buffer)
 (global-set-key (kbd "<end>") 'end-of-buffer)
 
-;; TODO move to clojure mode 
+;; TODO move to clojure/cider mode 
 ;; (global-set-key (kbd "C-S-l") 'cider-load-buffer)
 ;; (global-set-key (kbd "C-S-n") 'cider-repl-set-ns)
 ;; (global-set-key (kbd "C-S-p") 'intellij-send-top-form-to-repl)
@@ -479,40 +382,24 @@ KEY must be given in `kbd' notation."
     
     ;;Use only that i know.
     (add-to-list 'auto-mode-alist '("\\.phtml\\'" . web-mode))
-    (add-to-list 'auto-mode-alist '("\\.html?\\'" . web-mode))
-    ;; (add-to-list 'auto-mode-alist '("\\.tpl\\.php\\'" . web-mode))
-    ;; (add-to-list 'auto-mode-alist '("\\.[agj]sp\\'" . web-mode))
-    ;; (add-to-list 'auto-mode-alist '("\\.as[cp]x\\'" . web-mode))
-    ;; (add-to-list 'auto-mode-alist '("\\.erb\\'" . web-mode))
-    ;; (add-to-list 'auto-mode-alist '("\\.mustache\\'" . web-mode))
-    ;; (add-to-list 'auto-mode-alist '("\\.djhtml\\'" . web-mode))
-   
+    (add-to-list 'auto-mode-alist '("\\.html?\\'" . web-mode)) 
     ))
-
-;; javascript
-;; (add-to-list 'auto-mode-alist '("\\.js$" . js-mode))
-;; (add-hook 'js-mode-hook 'subword-mode)
-;; (setq js-indent-level 2)
 
 ;;;;;;;;;;
 ;; Go Mode
 ;;;;;;;;;;
+
 (setenv "GOPATH" "/Users/skadinyo/Projects/go")
 (defun my-go-mode-hook ()
   (setq tab-width 2)
   (setq standard-indent 2) 
   (setq indent-tabs-mode nil)
   (add-hook 'before-save-hook 'gofmt-before-save)
-  (add-hook 'go-mode-hook 'subword-mode)
-  ;; (local-set-key (kbd "M-.") 'godef-jump)
-  ;; (local-set-key (kbd "M-,") 'godef-jump-other-window)
-  ;; (local-set-key (kbd "M-p") 'compile) 
-  ;; (local-set-key (kbd "M-P") 'recompile)
-  )
+  (add-hook 'go-mode-hook 'subword-mode))
 
-;; 
+;; TODO Explore go-eldoc
 
-;; Bug, indentation won't work.
+;; FIXME indentation won't work if put in use-package config
 ;; Don't know why.
 (use-package go-mode
   :ensure t
@@ -521,7 +408,10 @@ KEY must be given in `kbd' notation."
   :bind (("M-." . godef-jump)
          ("M-," . godef-jump-other-window)
          ("M-p" . compile) 
-         ("M-P" . recompile))
+         ("M-P" . recompile)
+         ("<C-right>" . move-end-of-line)
+         ("<C-left>" . move-beginning-of-line)
+         )
   :config
   (add-hook 'go-mode-hook 'my-go-mode-hook)
   (add-hook 'before-save-hook 'gofmt-before-save)
@@ -535,18 +425,17 @@ KEY must be given in `kbd' notation."
   (with-eval-after-load 'company
     (add-to-list 'company-backends 'company-go)))
 
-;;Explore go-eldoc
-
-;;;;;;;;;;
-;; Hook that i still don't know
-;;;;;;;;;;
 
 (add-hook 'prog-mode-hook 'rainbow-delimiters-mode)
+(add-hook 'prog-mode-hook 'hl-line-mode)
+(add-hook 'prog-mode-hook 'diff-hl-mode)
 
 ;;;;;;;;;;
 ;; Paredit
 ;;;;;;;;;;
 
+
+;; TODO Fix this $hit. it's so clutered :(
 (use-package paredit
   :ensure t
   :defer t
@@ -573,97 +462,129 @@ KEY must be given in `kbd' notation."
     ))
 
 ;;;;;;;;;;
-;; Org-mode
-;;;;;;;;;;
-
-(use-package org
-  :ensure t
-  :defer t
-  :mode "\\.org$"
-  :bind (("\C-cl" . org-store-link)
-         ("\C-ca" . org-agenda))
-  :config
-  (progn
-    (setq org-log-done t)
-    (setq org-support-shift-select t)
-    (setq org-todo-keywords
-          '((sequence "TODO" "IN-PROGRESS" "WAITING" "DONE")))
-
-    ))
-
-;; (find-file "~/Dropbox/documents/worknote.org")
-
-;;;;;;;;;;
 ;; js-mode
 ;;;;;;;;;;
 
+;; prettier-js-command is the prettier command
+;; prettier-js-args are the args passed to the prettier command
+;; prettier-js-show-errors customizes where to display the error output (buffer, echo or nil)
+;; prettier-js-width-mode customizes the width when formatting buffer contents (window, fill or nil)
+(use-package prettier-js
+  :ensure t
+  :defer t
+  :config
+  (progn
+    (setq prettier-js-args '("--tab-width" "2"
+                             "--use-tabs" "false"
+                             ;; "--trailing-comma" "all"
+                             "--single-quote" "true"
+                             "--print-width" "100"
+                             "--semi" "true"))
+    (add-hook 'js2-mode-hook 'prettier-js-mode)))
+
+;;TODO Find out what is this for
+(use-package add-node-modules-path
+  :ensure t
+  :defer t
+  )
+
+(use-package nyan-mode
+  :if window-system
+  :ensure t
+  :defer t
+  :config
+  (nyan-mode)
+  (nyan-start-animation)
+  (nyan-toggle-wavy-trail))
+
+;;TODO Slow as f*ck when opening new file
 (use-package rjsx-mode
   :ensure t
   :defer t
   :mode "\\.js$"
+  :bind (("<C-right>" . move-end-of-line)
+         ("<C-left>" . move-beginning-of-line))
   :config
   (progn
     (subword-mode)
-    (setq indent-tabs-mode nil) ;;Use space instead of tab
-    (setq js-indent-level 2) ;;space width is 2 (default is 4)
+    (setq indent-tabs-mode nil)
+    (setq js-indent-level 2)
     (setq js2-strict-missing-semi-warning nil)
-    ;; (define-key rjsx-mode-map "<" nil)
-    ;; (define-key rjsx-mode-map (kbd "C-d") nil)
-    ;; (define-key rjsx-mode-map ">" nil)
+    (defadvice js-jsx-indent-line (after js-jsx-indent-line-after-hack activate)
+      "Workaround sgml-mode and follow airbnb component style."
+      (save-excursion
+        (beginning-of-line)
+        (if (looking-at-p "^ +\/?> *$")
+            (delete-char sgml-basic-offset))))
   ))
 
-;; (use-package js2-mode
-;;   :defer 1
+(setq backup-directory-alist '(("." . "~/.emacs.d/backup"))
+  backup-by-copying t    ; Don't delink hardlinks
+  version-control t      ; Use version numbers on backups
+  delete-old-versions t  ; Automatically delete excess backups
+  kept-new-versions 20   ; how many of the newest versions to keep
+  kept-old-versions 5    ; and how many of the old
+  )
+
+
+(use-package mode-icons
+  :defer t
+  :ensure t
+  :init 
+  (mode-icons-mode)
+  )
+
+(use-package ace-jump-mode
+  :defer t
+  :ensure t
+  :config
+  (progn
+    (global-set-key (kbd "C-SPC") 'ace-jump-mode)
+    ))
+
+;; TODO dumbjump
+
+;; TODO Will try projectile again some other time.
+
+;; (use-package projectile
+;;   :init (projectile-global-mode)
+;;   :ensure t
+;;   :defer t
+;;   ;;Still don't know how to use bind for simulate-key-press function
+;;   ;;:bind (("C-p" . (simulate-key-press "C-c p")))
 ;;   :config
+;;   ;; (projectile-project-root)
+;;   ;; (setq projectile-indexing-method 'native)
 ;;   (progn
-;;     (add-to-list 'interpreter-mode-alist '("node" . js2-mode))
+;;     (setq projectile-globally-ignored-directories
+;;           (append '(
+;;                     ".git"
+;;                     ".svn"
+;;                     "out"
+;;                     "repl"
+;;                     "target"
+;;                     "venv"
+;;                     "node_modules"
+;;                     )
+;;                   projectile-globally-ignored-directories))
+;;     (setq projectile-globally-ignored-files
+;;           (append '(
+;;                     ".DS_Store"
+;;                     "*.gz"
+;;                     "*.pyc"
+;;                     "*.jar"
+;;                     "*.tar.gz"
+;;                     "*.tgz"
+;;                     "*.zip"
+;;                     )
+;;                   projectile-globally-ignored-files))
+;;     (setq projectile-enable-caching t)
+;;     (global-set-key (kbd "C-p") (simulate-key-press "C-c p")))  )
 
-;;     (add-hook 'js2-mode-hook #'setup-tide-mode)
-;;     ;(add-hook 'js2-mode-hook #'tern-mode)
-
-;;     (setq js2-basic-offset 2
-;;           js2-bounce-indent-p t
-;;           js2-strict-missing-semi-warning nil
-;;           js2-concat-multiline-strings nil
-;;           js2-include-node-externs t
-;;           js2-skip-preprocessor-directives t
-;;           js2-strict-inconsistent-return-warning nil)))
-
-;; (defadvice js-jsx-indent-line (after js-jsx-indent-line-after-hack activate)
-;;   "Workaround sgml-mode and follow airbnb component style."
-;;   (save-excursion
-;;     (beginning-of-line)
-;;     (if (looking-at-p "^ +\/?> *$")
-;;         (delete-char sgml-basic-offset))))
-
-;; (when (window-system)
-;;   (set-default-font "Fira Code Retina"))
-;; (let ((alist '((33 . ".\\(?:\\(?:==\\|!!\\)\\|[!=]\\)")
-;;                (35 . ".\\(?:###\\|##\\|_(\\|[#(?[_{]\\)")
-;;                (36 . ".\\(?:>\\)")
-;;                (37 . ".\\(?:\\(?:%%\\)\\|%\\)")
-;;                (38 . ".\\(?:\\(?:&&\\)\\|&\\)")
-;;                (42 . ".\\(?:\\(?:\\*\\*/\\)\\|\\(?:\\*[*/]\\)\\|[*/>]\\)")
-;;                (43 . ".\\(?:\\(?:\\+\\+\\)\\|[+>]\\)")
-;;                (45 . ".\\(?:\\(?:-[>-]\\|<<\\|>>\\)\\|[<>}~-]\\)")
-;;                (46 . ".\\(?:\\(?:\\.[.<]\\)\\|[.=-]\\)")
-;;                (47 . ".\\(?:\\(?:\\*\\*\\|//\\|==\\)\\|[*/=>]\\)")
-;;                (48 . ".\\(?:x[a-zA-Z]\\)")
-;;                (58 . ".\\(?:::\\|[:=]\\)")
-;;                (59 . ".\\(?:;;\\|;\\)")
-;;                (60 . ".\\(?:\\(?:!--\\)\\|\\(?:~~\\|->\\|\\$>\\|\\*>\\|\\+>\\|--\\|<[<=-]\\|=[<=>]\\||>\\)\\|[*$+~/<=>|-]\\)")
-;;                (61 . ".\\(?:\\(?:/=\\|:=\\|<<\\|=[=>]\\|>>\\)\\|[<=>~]\\)")
-;;                (62 . ".\\(?:\\(?:=>\\|>[=>-]\\)\\|[=>-]\\)")
-;;                (63 . ".\\(?:\\(\\?\\?\\)\\|[:=?]\\)")
-;;                (91 . ".\\(?:]\\)")
-;;                (92 . ".\\(?:\\(?:\\\\\\\\\\)\\|\\\\\\)")
-;;                (94 . ".\\(?:=\\)")
-;;                (119 . ".\\(?:ww\\)")
-;;                (123 . ".\\(?:-\\)")
-;;                (124 . ".\\(?:\\(?:|[=|]\\)\\|[=>|]\\)")
-;;                (126 . ".\\(?:~>\\|~~\\|[>=@~-]\\)")
-;;                )
-;;              ))
-;;   (dolist (char-regexp alist)
-;;     (set-char-table-range composition-function-table (car char-regexp)
-;;                           `([,(cdr char-regexp) 0 font-shape-gstring]))))
+;; (defun simulate-key-press (key)
+;;   "Pretend that KEY was pressed.
+;;  KEY must be given in `kbd' notation."
+;;   `(lambda () (interactive)
+;;      (setq prefix-arg current-prefix-arg)
+;;      (setq unread-command-events (listify-key-sequence (read-kbd-macro ,key)))))
+ 
