@@ -202,12 +202,6 @@
          ("C-S-z" . undo-tree-redo)
          ("M-Z" . undo-tree-redo)))
 
-;; I think nlinum mode is more stable.
-;; (use-package nlinum
-;;   :defer t
-;;   :ensure t
-;;   :init (global-nlinum-mode))
-
 (use-package linum-relative
   :defer t
   :ensure t
@@ -353,7 +347,7 @@
 (global-set-key (kbd "<home>") 'beginning-of-buffer)
 (global-set-key (kbd "<end>") 'end-of-buffer)
 
-;; TODO move to clojure mode 
+;; TODO move to clojure/cider mode 
 ;; (global-set-key (kbd "C-S-l") 'cider-load-buffer)
 ;; (global-set-key (kbd "C-S-n") 'cider-repl-set-ns)
 ;; (global-set-key (kbd "C-S-p") 'intellij-send-top-form-to-repl)
@@ -388,19 +382,13 @@
     
     ;;Use only that i know.
     (add-to-list 'auto-mode-alist '("\\.phtml\\'" . web-mode))
-    (add-to-list 'auto-mode-alist '("\\.html?\\'" . web-mode))
-    ;; (add-to-list 'auto-mode-alist '("\\.tpl\\.php\\'" . web-mode))
-    ;; (add-to-list 'auto-mode-alist '("\\.[agj]sp\\'" . web-mode))
-    ;; (add-to-list 'auto-mode-alist '("\\.as[cp]x\\'" . web-mode))
-    ;; (add-to-list 'auto-mode-alist '("\\.erb\\'" . web-mode))
-    ;; (add-to-list 'auto-mode-alist '("\\.mustache\\'" . web-mode))
-    ;; (add-to-list 'auto-mode-alist '("\\.djhtml\\'" . web-mode))
-   
+    (add-to-list 'auto-mode-alist '("\\.html?\\'" . web-mode)) 
     ))
 
 ;;;;;;;;;;
 ;; Go Mode
 ;;;;;;;;;;
+
 (setenv "GOPATH" "/Users/skadinyo/Projects/go")
 (defun my-go-mode-hook ()
   (setq tab-width 2)
@@ -409,9 +397,7 @@
   (add-hook 'before-save-hook 'gofmt-before-save)
   (add-hook 'go-mode-hook 'subword-mode))
 
-;; 
-
-;;TODO Explore go-eldoc
+;; TODO Explore go-eldoc
 
 ;; FIXME indentation won't work if put in use-package config
 ;; Don't know why.
@@ -476,29 +462,6 @@
     ))
 
 ;;;;;;;;;;
-;; Org-mode
-;;;;;;;;;;
-
-;; (use-package org
-;;   :ensure t
-;;   :defer t
-;;   :mode "\\.org$"
-;;   :bind (("\C-cl" . org-store-link)
-;;          ("\C-ca" . org-agenda))
-;;   :config
-;;   (progns
-;;     (setq org-log-done t)
-;;     (setq org-support-shift-select t)
-;;     (setq org-todo-keywords
-;;           '((sequence "TODO" "IN-PROGRESS" "WAITING" "DONE")))
-
-;;     ))
-
-
-
-;; (find-file "~/Dropbox/documents/worknote.org")
-
-;;;;;;;;;;
 ;; js-mode
 ;;;;;;;;;;
 
@@ -519,7 +482,7 @@
                              "--semi" "true"))
     (add-hook 'js2-mode-hook 'prettier-js-mode)))
 
-;;Not sure what for :(
+;;TODO Find out what is this for
 (use-package add-node-modules-path
   :ensure t
   :defer t
@@ -534,7 +497,7 @@
   (nyan-start-animation)
   (nyan-toggle-wavy-trail))
 
-;; Slow as f*ck when opening new file
+;;TODO Slow as f*ck when opening new file
 (use-package rjsx-mode
   :ensure t
   :defer t
@@ -547,12 +510,6 @@
     (setq indent-tabs-mode nil)
     (setq js-indent-level 2)
     (setq js2-strict-missing-semi-warning nil)
-
-    
-    ;; (define-key rjsx-mode-map "<" nil)
-    ;; (define-key rjsx-mode-map (kbd "C-d") nil)
-    ;; (define-key rjsx-mode-map ">" nil)
-
     (defadvice js-jsx-indent-line (after js-jsx-indent-line-after-hack activate)
       "Workaround sgml-mode and follow airbnb component style."
       (save-excursion
@@ -585,23 +542,49 @@
     (global-set-key (kbd "C-SPC") 'ace-jump-mode)
     ))
 
-;; dumbjump
+;; TODO dumbjump
 
-(custom-set-variables
- ;; custom-set-variables was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(custom-safe-themes
-   (quote
-    ("98cc377af705c0f2133bb6d340bf0becd08944a588804ee655809da5d8140de6" "f0c98535db38af17e81e491a77251e198241346306a90c25eb982b57e687d7c0" default)))
- '(nyan-mode t)
- '(package-selected-packages
-   (quote
-    (ace-jump-mode mode-icons google-this linum-relative monokai-theme htmlize highlight-indentation nyan-mode yaml-mode web-mode visual-regexp use-package undo-tree so-long smex rjsx-mode rg rainbow-delimiters prettier-js paredit nlinum nginx-mode multiple-cursors material-theme magit keyfreq json-mode itail ido-ubiquitous hl-todo highlight-symbol golint go-guru git-link flycheck flx-ido expand-region exec-path-from-shell esup diff-hl company-go clojure-mode-extra-font-locking cider add-node-modules-path))))
-(custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- )
+;; TODO Will try projectile again some other time.
+
+;; (use-package projectile
+;;   :init (projectile-global-mode)
+;;   :ensure t
+;;   :defer t
+;;   ;;Still don't know how to use bind for simulate-key-press function
+;;   ;;:bind (("C-p" . (simulate-key-press "C-c p")))
+;;   :config
+;;   ;; (projectile-project-root)
+;;   ;; (setq projectile-indexing-method 'native)
+;;   (progn
+;;     (setq projectile-globally-ignored-directories
+;;           (append '(
+;;                     ".git"
+;;                     ".svn"
+;;                     "out"
+;;                     "repl"
+;;                     "target"
+;;                     "venv"
+;;                     "node_modules"
+;;                     )
+;;                   projectile-globally-ignored-directories))
+;;     (setq projectile-globally-ignored-files
+;;           (append '(
+;;                     ".DS_Store"
+;;                     "*.gz"
+;;                     "*.pyc"
+;;                     "*.jar"
+;;                     "*.tar.gz"
+;;                     "*.tgz"
+;;                     "*.zip"
+;;                     )
+;;                   projectile-globally-ignored-files))
+;;     (setq projectile-enable-caching t)
+;;     (global-set-key (kbd "C-p") (simulate-key-press "C-c p")))  )
+
+;; (defun simulate-key-press (key)
+;;   "Pretend that KEY was pressed.
+;;  KEY must be given in `kbd' notation."
+;;   `(lambda () (interactive)
+;;      (setq prefix-arg current-prefix-arg)
+;;      (setq unread-command-events (listify-key-sequence (read-kbd-macro ,key)))))
+ 
