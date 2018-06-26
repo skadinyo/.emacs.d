@@ -37,7 +37,9 @@
 
 (use-package nginx-mode
   :defer t
-  :ensure t)
+  :ensure t
+  :config
+  (setq nginx-indent-level 2))
 
 ;; TODO explore!!!
 ;; (use-package multi-term
