@@ -1,16 +1,23 @@
 (x-focus-frame nil)
 
 (require 'package)
+
 (add-to-list 'package-archives
-             '("melpa" . "http://melpa.milkbox.net/packages/") t)
+             '("marmalade" . "http://marmalade-repo.org/packages/") t)
 (add-to-list 'package-archives
-             '("marmalade" .
-               "http://marmalade-repo.org/packages/"))
+             '("melpa" . "http://melpa.org/packages/") t)
+(add-to-list 'package-archives 
+             '("org" . "http://orgmode.org/elpa/") t)
+;; (add-to-list 'package-archives
+;;              '("melpa" . "http://melpa.milkbox.net/packages/") t)
+;; (add-to-list 'package-archives
+;;              '("marmalade" .
+;;                "http://marmalade-repo.org/packages/"))
 
 (defvar my-packages
   '(paredit
-  clojure-mode
-  clojure-mode-extra-font-locking))
+    clojure-mode
+    clojure-mode-extra-font-locking))
 
 (package-initialize)
 
@@ -75,22 +82,11 @@
   (interactive)
   (cider-insert-last-sexp-in-repl -1)
   (cider-switch-to-last-clojure-buffer))
+
+;; TODO set local key to clojure mode
 (global-set-key (kbd "C-S-p") 'intellij-send-top-form-to-repl)
 
-(defun intellij-reformat-code ()
-  (interactive)
-  (mark-whole-buffer)
-  (indent-region (region-beginning) (region-end))
-  (pop-global-mark))
-
-(defun indent-marked-files ()
-  (interactive)
-  (dolist (file (dired-get-marked-files))
-    (find-file file)
-    (indent-region (point-min) (point-max))
-    (save-buffer)
-    (kill-buffer nil)))
-
+;; TODO seperate the fns to another file
 (defun cider-dev>reset ()
   "Convenient function to reset my clojure development system."
   (interactive)
@@ -126,14 +122,6 @@
   (paredit-backward)
   ;;(previous-line)
   )
-
-(defun experiment-repair-all-unused-space ()
-  "Experiment stuff."
-  (interactive)
-  (beginning-of-buffer)
-  (while (re-search-forward "[ ]+" nil t)
-    (replace-match " "))
-  (intellij-reformat-code))
  
 ;; comments
 (defun toggle-comment-on-line ()
@@ -148,6 +136,13 @@
   (if (region-active-p)
       (kill-region (region-beginning) (region-end))
     (paredit-backward-delete)))
+
+(defun simulate-key-press (key)
+  "Pretend that KEY was pressed.
+ KEY must be given in `kbd' notation."
+  `(lambda () (interactive)
+     (setq prefix-arg current-prefix-arg)
+     (setq unread-command-events (listify-key-sequence (read-kbd-macro ,key)))))
 
 (require 'uniquify)
 
@@ -246,7 +241,7 @@
  scroll-preserve-screen-position t
  truncate-lines t
  )
-(setq message-log-max 100)
+(setq message-log-max 10)
 
 ;; TODO explore!!
 (use-package smex
@@ -302,9 +297,19 @@
   :config 
   (progn
     (setq company-idle-delay nil
-          company-require-match nil))
+          company-require-match nil)
+    (setq company-tooltip-align-annotations t
+          ;; Easy navigation to candidates with M-<n>
+          company-show-numbers t)
+    ;; (setq company-dabbrev-downcase nil)
+    )
   :bind (("M-TAB" . company-complete)
          ("TAB" . company-indent-or-complete-common)))
+
+;; (use-package company-quickhelp          ; Documentation popups for Company
+;;   :ensure t
+;;   :defer t
+;;   :init (add-hook 'global-company-mode-hook #'company-quickhelp-mode))
 
 ;; Benchmarking
 (use-package esup
@@ -313,12 +318,13 @@
 
 ;; TODO make flycheck only in go, js, elisp project!
 (use-package flycheck
-  :init (global-flycheck-mode)
+  ;; :init (global-flycheck-mode) 
   :ensure t
   :defer t
   :config
   (progn
-    (setq flycheck-highlighting-mode 'lines)))
+    (setq flycheck-highlighting-mode 'lines)
+    ))
 
 ;; Crazy fast grep alternative
 (use-package rg
@@ -350,9 +356,9 @@
 (global-set-key (kbd "<end>") 'end-of-buffer)
 
 ;; TODO move to clojure/cider mode 
-;; (global-set-key (kbd "C-S-l") 'cider-load-buffer)
-;; (global-set-key (kbd "C-S-n") 'cider-repl-set-ns)
-;; (global-set-key (kbd "C-S-p") 'intellij-send-top-form-to-repl)
+(global-set-key (kbd "C-S-l") 'cider-load-buffer)
+(global-set-key (kbd "C-S-n") 'cider-repl-set-ns)
+(global-set-key (kbd "C-S-p") 'intellij-send-top-form-to-repl)
 ;; (global-set-key (kbd "<f5>") 'cider-dev>reset)
 ;; (global-set-key (kbd "<f6>") 'cider-dev>c.t.n.repl/refresh)
 
@@ -432,6 +438,15 @@
 (add-hook 'prog-mode-hook 'hl-line-mode)
 (add-hook 'prog-mode-hook 'diff-hl-mode)
 
+(use-package go-eldoc
+  :ensure t
+  :config 
+  (add-hook 'go-mode-hook 'go-eldoc-setup)
+  (set-face-attribute 'eldoc-highlight-function-argument nil
+                    :underline t :foreground "green"
+                    :weight 'bold)
+  )
+
 ;;;;;;;;;;
 ;; Paredit
 ;;;;;;;;;;
@@ -450,7 +465,7 @@
     (define-key paredit-mode-map (kbd "<M-down>")  nil)
     (define-key paredit-mode-map (kbd "<C-right>")  'move-end-of-line)
     (define-key paredit-mode-map (kbd "<C-left>")  'move-beginning-of-line)
-    (define-key paredit-mode-map (kbd "M-k") 'paredit-kill)
+    ;; (define-key paredit-mode-map (kbd "M-k") 'paredit-kill)
     (define-key paredit-mode-map (kbd "M-s") nil)
     (define-key paredit-mode-map (kbd "M-s M-d") 'paredit-forward-slurp-sexp)
     (define-key paredit-mode-map (kbd "M-s M-a") 'paredit-backward-slurp-sexp)
@@ -494,10 +509,11 @@
   :if window-system
   :ensure t
   :defer t
+  :init (nyan-mode)
   :config
-  (nyan-mode)
-  (nyan-start-animation)
-  (nyan-toggle-wavy-trail))
+  (progn
+   (nyan-start-animation)
+   (nyan-toggle-wavy-trail)))
 
 ;;TODO Slow as f*ck when opening new file
 (use-package rjsx-mode
@@ -510,7 +526,7 @@
   (progn
     (subword-mode)
     (setq indent-tabs-mode nil)
-    (setq js-indent-level 2)
+    (setq js-indent-level 4)
     (setq js2-strict-missing-semi-warning nil)
     (defadvice js-jsx-indent-line (after js-jsx-indent-line-after-hack activate)
       "Workaround sgml-mode and follow airbnb component style."
@@ -528,23 +544,29 @@
   kept-old-versions 5    ; and how many of the old
   )
 
-
 (use-package mode-icons
   :defer t
   :ensure t
   :init 
-  (mode-icons-mode)
-  )
+  (mode-icons-mode))
 
 (use-package ace-jump-mode
   :defer t
-  :ensure t
-  :config
-  (progn
-    (global-set-key (kbd "C-SPC") 'ace-jump-mode)
-    ))
+  :ensure t)
 
-;; TODO dumbjump
+(global-set-key (kbd "M-j") 'ace-jump-mode)
+
+;; Markdown support
+(require 'markdown-mode)
+(require 'markdown-mode+)
+(setq markdown-command "/usr/bin/markdown")
+(add-to-list 'auto-mode-alist '("\\.markdown$" . markdown-mode))
+(add-to-list 'auto-mode-alist '("\\.md$" . markdown-mode))
+(setq markdown-css-paths `(,(expand-file-name "Documents/markdown.css")))
+
+(global-set-key (kbd "C-SPC") 'ace-jump-mode)
+
+;; todo dumbjump
 
 ;; TODO Will try projectile again some other time.
 
@@ -582,11 +604,17 @@
 ;;                   projectile-globally-ignored-files))
 ;;     (setq projectile-enable-caching t)
 ;;     (global-set-key (kbd "C-p") (simulate-key-press "C-c p")))  )
-
-;; (defun simulate-key-press (key)
-;;   "Pretend that KEY was pressed.
-;;  KEY must be given in `kbd' notation."
-;;   `(lambda () (interactive)
-;;      (setq prefix-arg current-prefix-arg)
-;;      (setq unread-command-events (listify-key-sequence (read-kbd-macro ,key)))))
- 
+(custom-set-variables
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(package-selected-packages
+   (quote
+    (go-eldoc markdown-mode+ markdown-mode xkcd flycheck-gometalinter company-quickhelp yaml-mode web-mode visual-regexp use-package undo-tree so-long smex rjsx-mode rg rainbow-delimiters prettier-js paredit nyan-mode nlinum nginx-mode multiple-cursors monokai-theme mode-icons material-theme magit linum-relative keyfreq json-mode itail ido-ubiquitous htmlize hl-todo highlight-symbol highlight-indentation google-this golint go-guru git-link flycheck flx-ido expand-region exec-path-from-shell esup diminish diff-hl company-go clojure-mode-extra-font-locking cider anaconda-mode add-node-modules-path ace-jump-mode))))
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ )
