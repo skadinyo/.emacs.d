@@ -131,6 +131,19 @@
 
 (global-set-key (kbd "C-;") 'toggle-comment-on-line)
 
+(defun decode-url ()
+  (interactive)
+  (if (region-active-p)
+      (progn
+        (setq x (decode-coding-string 
+                 (url-unhex-string (buffer-substring (region-beginning) (region-end)))
+                 'utf-8))
+        (delete-region (region-beginning) (region-end))
+        (insert x)))
+  )
+
+(global-set-key (kbd "C-x P") 'isearch-forward)
+
 (defun paredit-kill-region-or-backward-delete ()
   (interactive)
   (if (region-active-p)
@@ -381,6 +394,7 @@
   :config
   (progn
     ;;Indentation
+    (subword-mode)
     (setq web-mode-markup-indent-offset 4) 
     (setq web-mode-code-indent-offset 4)
     (setq web-mode-css-indent-offset 4)
@@ -534,7 +548,24 @@
         (beginning-of-line)
         (if (looking-at-p "^ +\/?> *$")
             (delete-char sgml-basic-offset))))
+    ;;bad boy bad boy
+    (js2-refactor-mode)
   ))
+
+
+(use-package js2-refactor
+  :ensure t
+  :defer t
+  
+  :config
+  (progn
+    (add-hook 'js2-mode-hook #'js2-refactor-mode)
+    (add-hook 'rjsx-mode #'js2-refactor-mode)
+    (js2r-add-keybindings-with-prefix "C-j")
+    ))
+
+;; (use-package discover-js2-refactor
+;;   :ensure t)
 
 (setq backup-directory-alist '(("." . "~/.emacs.d/backup"))
   backup-by-copying t    ; Don't delink hardlinks
@@ -555,6 +586,16 @@
   :ensure t)
 
 (global-set-key (kbd "M-j") 'ace-jump-mode)
+(use-package ansi-color
+  :defer t
+  :ensure t)
+
+;; (require 'ansi-color)
+;; (defun my/ansi-colorize-buffer ()
+;;   (let ((buffer-read-only nil))
+;;     (ansi-color-apply-on-region (point-min) (point-max))))
+;; (add-hook 'compilation-filter-hook 'my/ansi-colorize-buffer)
+;; (add-hook 'git-commit-setup-hook 'my/ansi-colorize-buffer)
 
 ;; Markdown support
 (require 'markdown-mode)
@@ -565,6 +606,12 @@
 (setq markdown-css-paths `(,(expand-file-name "Documents/markdown.css")))
 
 (global-set-key (kbd "C-SPC") 'ace-jump-mode)
+
+(use-package elpy
+  :defer t
+  :ensure t
+  :init
+  (elpy-enable))
 
 ;; todo dumbjump
 
@@ -604,17 +651,3 @@
 ;;                   projectile-globally-ignored-files))
 ;;     (setq projectile-enable-caching t)
 ;;     (global-set-key (kbd "C-p") (simulate-key-press "C-c p")))  )
-(custom-set-variables
- ;; custom-set-variables was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(package-selected-packages
-   (quote
-    (go-eldoc markdown-mode+ markdown-mode xkcd flycheck-gometalinter company-quickhelp yaml-mode web-mode visual-regexp use-package undo-tree so-long smex rjsx-mode rg rainbow-delimiters prettier-js paredit nyan-mode nlinum nginx-mode multiple-cursors monokai-theme mode-icons material-theme magit linum-relative keyfreq json-mode itail ido-ubiquitous htmlize hl-todo highlight-symbol highlight-indentation google-this golint go-guru git-link flycheck flx-ido expand-region exec-path-from-shell esup diminish diff-hl company-go clojure-mode-extra-font-locking cider anaconda-mode add-node-modules-path ace-jump-mode))))
-(custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- )
